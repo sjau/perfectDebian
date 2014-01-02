@@ -126,83 +126,32 @@ ff02::2 ip6-allrouters" > "/etc/hosts"
 function preseeding
 {
     echo "
-dash    dash/sh boolean false
-postfix postfix/root_address    string
-postfix postfix/rfc1035_violation       boolean false
-postfix postfix/mydomain_warning        boolean
-postfix postfix/mynetworks      string  127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
-postfix postfix/mailname        string  ${hostname}.${domain}
-postfix postfix/tlsmgr_upgrade_warning  boolean
-postfix postfix/recipient_delim string  +
-postfix postfix/main_mailer_type        select  Internet Site
-postfix postfix/destinations    string  ${hostname}.${domain} , localhost.mydomain.com, localhost
-postfix postfix/retry_upgrade_warning   boolean
-# Install postfix despite an unsupported kernel?
-postfix postfix/kernel_version_warning  boolean
-postfix postfix/not_configured  error
-postfix postfix/sqlite_warning  boolean
-postfix postfix/mailbox_limit   string  0
-postfix postfix/relayhost       string
-postfix postfix/procmail        boolean true
-postfix postfix/bad_recipient_delimiter error
-postfix postfix/protocols       select  all
-postfix postfix/chattr  boolean false
-mysql-server-5.5        mysql-server/root_password_again        password        ${mysqlpassword}
-mysql-server-5.5        mysql-server/root_password      password        ${mysqlpassword}
-mysql-server-5.5        mysql-server/error_setting_password     error
-mysql-server-5.5        mysql-server-5.5/postrm_remove_databases        boolean false
-mysql-server-5.5        mysql-server-5.5/start_on_boot  boolean true
-mysql-server-5.5        mysql-server-5.5/nis_warning    note
-mysql-server-5.5        mysql-server-5.5/really_downgrade       boolean false
-mysql-server-5.5        mysql-server/password_mismatch  error
-mysql-server-5.5        mysql-server/no_upgrade_when_using_ndb  error
-phpmyadmin      phpmyadmin/app-password-confirm password
-phpmyadmin      phpmyadmin/mysql/admin-pass     password
-phpmyadmin      phpmyadmin/password-confirm     password
-phpmyadmin      phpmyadmin/setup-password       password
-# MySQL application password for phpmyadmin:
-phpmyadmin      phpmyadmin/mysql/app-pass       password
-phpmyadmin      phpmyadmin/remove-error select  abort
-phpmyadmin      phpmyadmin/setup-username       string  admin
-# MySQL username for phpmyadmin:
-phpmyadmin      phpmyadmin/db/app-user  string
-phpmyadmin      phpmyadmin/install-error        select  abort
-phpmyadmin      phpmyadmin/reconfigure-webserver        multiselect     apache2
-# Host name of the MySQL database server for phpmyadmin:
-phpmyadmin      phpmyadmin/remote/host  select
-# Configure database for phpmyadmin with dbconfig-common?
-phpmyadmin      phpmyadmin/dbconfig-install     boolean false
-phpmyadmin      phpmyadmin/remote/port  string
-# Perform upgrade on database for phpmyadmin with dbconfig-common?
-phpmyadmin      phpmyadmin/dbconfig-upgrade     boolean true
-phpmyadmin      phpmyadmin/mysql/admin-user     string  root
-phpmyadmin      phpmyadmin/internal/reconfiguring       boolean false
-phpmyadmin      phpmyadmin/missing-db-package-error     select  abort
-# Host running the MySQL server for phpmyadmin:
-phpmyadmin      phpmyadmin/remote/newhost       string
-phpmyadmin      phpmyadmin/upgrade-error        select  abort
-# Reinstall database for phpmyadmin?
-phpmyadmin      phpmyadmin/dbconfig-reinstall   boolean false
-# MySQL database name for phpmyadmin:
-phpmyadmin      phpmyadmin/db/dbname    string
-# Database type to be used by phpmyadmin:
-phpmyadmin      phpmyadmin/database-type        select  mysql
-phpmyadmin      phpmyadmin/internal/skip-preseed        boolean true
-# Do you want to back up the database for phpmyadmin before upgrading?
-phpmyadmin      phpmyadmin/upgrade-backup       boolean true
-# Deconfigure database for phpmyadmin with dbconfig-common?
-phpmyadmin      phpmyadmin/dbconfig-remove      boolean
-phpmyadmin      phpmyadmin/passwords-do-not-match       error
-# Connection method for MySQL database of phpmyadmin:
-phpmyadmin      phpmyadmin/mysql/method select  unix socket
-# Do you want to purge the database for phpmyadmin?
-phpmyadmin      phpmyadmin/purge        boolean false
-mailman mailman/queue_files_present     select  abort installation
-mailman mailman/default_server_language select  en
-mailman mailman/site_languages  multiselect     en
-mailman mailman/used_languages  string
-mailman mailman/create_site_list        note
-    " > "packages.preseed"
+postfix postfix/mailname string ${hostname}.${domain}
+postfix postfix/main_mailer_type select Internet Site
+postfix postfix/destinations string ${hostname}.${domain}, localhost.${domain}, , localhost
+mysql-server-5.5 mysql-server/root_password password ${mysqlpassword}
+mysql-server-5.5 mysql-server/root_password seen true
+mysql-server-5.5 mysql-server/root_password_again password ${mysqlpassword}
+mysql-server-5.5 mysql-server/root_password_again seen true
+phpmyadmin phpmyadmin/internal/reconfiguring boolean false
+phpmyadmin phpmyadmin/missing-db-package-error select abort
+phpmyadmin phpmyadmin/setup-username string admin
+phpmyadmin phpmyadmin/install-error select abort
+phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2
+phpmyadmin phpmyadmin/upgrade-error select abort
+phpmyadmin phpmyadmin/dbconfig-reinstall boolean false
+phpmyadmin phpmyadmin/dbconfig-install boolean false
+phpmyadmin phpmyadmin/database-type select mysql
+phpmyadmin phpmyadmin/internal/skip-preseed boolean true
+phpmyadmin phpmyadmin/dbconfig-upgrade boolean true
+phpmyadmin phpmyadmin/upgrade-backup boolean true
+phpmyadmin phpmyadmin/mysql/method select unix socket
+phpmyadmin phpmyadmin/mysql/admin-user string root
+phpmyadmin phpmyadmin/purge boolean false
+mailman mailman/site_languages multiselect en
+mailman mailman/queue_files_present select abort installation
+mailman mailman/default_server_language select en
+   " > "packages.preseed"
 }
 
 
@@ -417,7 +366,7 @@ function installHorde
             pear install horde/horde_role
             pear run-scripts horde/horde_role
             pear install -a -B horde/webmail
-            ./mysqlexpect "${mysqlpassword}" "${hordedatabase}" "${hordeuser}" "${hordepassword}"
+            mysql -u root --password=${mysqlpassword} --batch --silent -e "CREATE DATABASE ${hordedatabase}; GRANT ALL ON ${hordedatabase}.* TO ${hordeuser}@localhost IDENTIFIED BY '${hordepassword}'; FLUSH PRIVILEGES;";
             ./hordeexpect "${hordeuser}" "${hordepassword}" "${hordedatabase}" "${hordefilesystem}" "${hordeadmin}"
             mkdir "${hordefilesystem}/phptmp/"
             chown -R www-data:www-data "${hordefilesystem}"
@@ -495,14 +444,14 @@ installPackages
 configureMySQL
 configurePostfix
 configureApache
-configureMailman
+#configureMailman
 configurePureFTPd
 configureQuota
 configureAWstats
-configureJailkit
-configureFail2ban
-installISPConfig
-installHorde
+#configureJailkit
+#configureFail2ban
+#installISPConfig
+#installHorde
 
 
 #clear;
