@@ -1,0 +1,17 @@
+#!/usr/bin/expect
+
+set mailmanemail [lindex $argv 0]
+set mailmanpassword [lindex $argv 1]
+
+
+spawn newlist mailman
+
+
+while {1} {
+    expect {
+        -re {Enter the email of the .*\[.*\]:}   {send $mailmanemail\r}
+        -re {Initial mailman .*\[.*\]:}          {send $mailmanpassword\r}
+        -re {Hit enter to notify .*\[.*\]:}      {send \r}
+        eof                                      {break}
+    }
+}

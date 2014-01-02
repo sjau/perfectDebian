@@ -1,0 +1,30 @@
+#!/usr/bin/expect
+
+set hordeuser [lindex $argv 0]
+set hordepassword [lindex $argv 1]
+set hordedatabase [lindex $argv 2]
+set hordefilesystem [lindex $argv 3]
+set hordeadmin [lindex $argv 4]
+
+
+spawn webmail-install
+
+
+while {1} {
+    expect {
+        -re {What database backend .*\[.*\]:}    {send mysql\r}
+        -re {Request persistent .*\[.*\]:}       {send 0\r}
+        -re {Username to connect .*\[.*\]:}      {send $hordeuser\r}
+        -re {Password to connect .*\[.*\]:}      {send $hordepassword\r}
+        -re {How should we connect .*\[.*\]:}    {send unix\r}
+        -re {Location of UNIX socket .*\[.*\]:}  {send \r}
+        -re {Database name to use .*\[.*\]:}     {send $hordedatabase\r}
+        -re {Internally used charset .*\[.*\]:}  {send utf-8\r}
+        -re {Use SSL to connect .*\[.*\]:}       {send 0\r}
+        -re {Certification Authority .*\[.*\]:}  {send \r}
+        -re {Split reads to .*\[.*\]:}           {send false\r}
+        -re {Filesystem installation .*\[.*\]:}  {send $hordefilesystem\r}
+        -re {Specify an existing .*\[.*\]:}      {send $hordeadmin\r}
+        eof                                      {break}
+    }
+}
