@@ -168,6 +168,7 @@ deb-src http://security.debian.org/ wheezy/updates main contrib non-free
 deb http://ftp.${country,,}.debian.org/debian/ wheezy-updates main contrib non-free
 deb-src http://ftp.${country,,}.debian.org/debian/ wheezy-updates main contrib non-free" > "/etc/apt/sources.list"
     apt-get update
+    apt-get -y upgrade
     apt-get -y install debconf-utils
     echo -e "debconf debconf/frontend select Noninteractive\ndebconf debconf/priority select critical" | debconf-set-selections
     preseeding
@@ -364,19 +365,19 @@ function installHorde
             apt-get -y install php5-sasl php5-intl libssh2-php php5-curl php-http php5-xmlrpc php5-geoip php5-ldap php5-memcache php5-memcached php5-tidy
             pear channel-discover pear.horde.org
             pear install horde/horde_role
-            pear run-scripts horde/horde_role
+            ./horderoleexpect "${hordefilesystem}"
             pear install -a -B horde/webmail
             mysql -u root --password=${mysqlpassword} --batch --silent -e "CREATE DATABASE ${hordedatabase}; GRANT ALL ON ${hordedatabase}.* TO ${hordeuser}@localhost IDENTIFIED BY '${hordepassword}'; FLUSH PRIVILEGES;";
-            ./hordeexpect "${hordeuser}" "${hordepassword}" "${hordedatabase}" "${hordefilesystem}" "${hordeadmin}"
+            ./hordewebmailexpect "${hordeuser}" "${hordepassword}" "${hordedatabase}" "${hordefilesystem}" "${hordeadmin}"
             mkdir "${hordefilesystem}/phptmp/"
             chown -R www-data:www-data "${hordefilesystem}"
             pear install channel://pear.php.net/SOAP-0.13.0
             pear install pear/MDB2#mysql
             pear install channel://pear.php.net/HTTP_WebDAV_Server-1.0.0RC7
             pear install channel://pear.php.net/XML_Serializer-0.20.2
-            pear install channel://pear.php.net/Date_Holidays-0.21.6
+            pear install channel://pear.php.net/Date_Holidays-0.21.8
             pear install Net_LDAP
-            pear install channel://pear.php.net/Text_CAPTCHA-0.4.3
+            pear install channel://pear.php.net/Text_CAPTCHA-0.5.0
             pear install pear/HTTP_Request2
             pear install channel://pear.php.net/Console_Color2-0.1.1
             echo "Alias /Microsoft-Server-ActiveSync ${hordefilesystem}/rpc.php
