@@ -37,7 +37,7 @@ ruby="y"        # Set to 'y' to enable ruby on webserver
 
 ### Mail Man
 mailman="y"     # Set to 'y' to enable Mailman
-mailmanemail="lists@mydomain.com"       # Set email of the person running the list
+mailmanemail="lists@mydomain.com"       # Set email of the person running the list; email must be user@domain.com and can't be user@sub.domain.com
 mailmanpassword="mypassword" 
 
 
@@ -216,6 +216,10 @@ function configurePostfix
 
 function configureApache
 {
+    updateSettings "/etc/apache2/mods-available/suphp.conf" '<FilesMatch' "    #<FilesMatch \"\\\.ph\(p3\?\|tml\)\$\">"
+    updateSettings "/etc/apache2/mods-available/suphp.conf" 'SetHandler' "    #    SetHandler application\/x-httpd-suphp"
+    updateSettings "/etc/apache2/mods-available/suphp.conf" '\/FilesMatch' "    #<\/FilesMatch>\n        AddType application\/x-httpd-suphp \.php \.php3 \.php4 \.php5 \.phtml"
+
     a2enmod suexec rewrite ssl actions include actions fastcgi alias
     case "${webdav}" in
         y)  echo "Enabling WebDAV on Apache2"
