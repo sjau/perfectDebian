@@ -19,12 +19,12 @@ while {1} {
         -re {How should we connect .*}          {send unix\r}
         -re {Location of UNIX socket .*}        {send \r}
         -re {Database name .*}                  {send $hordedatabase\r}
-        -re {Internally used charset .*}        {send utf-8\r}
+        -re {Internally used .*}                {send \r}
         -re {Use SSL to connect .*}             {send 0\r}
         -re {Certification Authority .*}        {send \r}
         -re {Split reads to .*}                 {send false\r}
         -re {Filesystem location .*}            {send $hordefilesystem\r}
-        -re {Specify an existing .*}            {send $hordeadmin\r}
+        -re {Specify an .*}                     {send $hordeadmin\r}
         eof                                     {break}
     }
 }

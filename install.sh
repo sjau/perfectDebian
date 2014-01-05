@@ -382,6 +382,9 @@ function installHorde
             pear install channel://pear.php.net/Console_Color2-0.1.1
             echo "Alias /Microsoft-Server-ActiveSync ${hordefilesystem}/rpc.php
 Alias /horde ${hordefilesystem}
+Alias /autodiscover/autodiscover.xml ${hordefilesystem}/rpc.php
+Alias /Autodiscover/Autodiscover.xml ${hordefilesystem}/rpc.php
+Alias /AutoDiscover/AutoDiscover.xml ${hordefilesystem}/rpc.php
 <Directory ${hordefilesystem}>
            Options +FollowSymLinks
            AllowOverride All
@@ -392,7 +395,7 @@ Alias /horde ${hordefilesystem}
            php_value open_basedir \"none\"
            php_value upload_tmp_dir \"${hordefilesystem}/phptmp/\"
 </Directory>" > /etc/apache2/conf.d/horde.conf
-            updateSettings "/var/www/horde/.htaccess" 'RewriteEngine On' "    RewriteEngine On\n    RewriteBase /horde"
+            updateSettings "/var/www/horde/.htaccess" 'RewriteEngine On' "    RewriteEngine On\n    RewriteBase \/horde"
             pear install -a -B horde/passwd
             chown -R www-data:www-data "${hordefilesystem}/passwd"
             cp -a "${hordefilesystem}/passwd/config/backends.php" "${hordefilesystem}/passwd/config/backends.local.php"
@@ -439,16 +442,17 @@ Alias /horde ${hordefilesystem}
 
 
 
-dpkg-reconfigure dash
-configureNetwork
-installPackages
-configureMySQL
-configurePostfix
-configureApache
+
+#dpkg-reconfigure dash
+#configureNetwork
+#installPackages
+#configureMySQL
+#configurePostfix
+#configureApache
 #configureMailman
-configurePureFTPd
-configureQuota
-configureAWstats
+#configurePureFTPd
+#configureQuota
+#configureAWstats
 #configureJailkit
 #configureFail2ban
 #installISPConfig
@@ -456,6 +460,8 @@ configureAWstats
 
 
 #clear;
+echo ""
+echo ""
 echo "Installation of Perfect Server, ISPConfig and - if selected - Horde Webmail complete. Please reboot server and connect to new IP if it was altered."
 
 
