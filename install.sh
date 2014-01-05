@@ -64,35 +64,37 @@ hordeadmin="admin@mydomain"     # Set existing mail user with administrator perm
 
 
 
+
 ##############################################################################
 #                                                                            #
 #                            BELOW BE DRAGONS                                #
 #                                                                            #
 ##############################################################################
 
-
+curPath=$( pwd )
 
 function updateSettings
 {
-        File="$1"
-        Pattern="$2"
-        Replace="$3"
-        if grep "${Pattern}" "${File}" >/dev/null;
-        then
-                # Pattern found, replace line
-                sed -i s/.*"${Pattern}".*/"${Replace}"/g "${File}"
-                echo ""
-        else
-                # Pattern not found, append new
-                echo "${Replace}" >> "${File}"
-        fi
+    File="$1"
+    Pattern="$2"
+    Replace="$3"
+    if grep "${Pattern}" "${File}" >/dev/null;
+    then
+            # Pattern found, replace line
+            sed -i s/.*"${Pattern}".*/"${Replace}"/g "${File}"
+            echo ""
+    else
+            # Pattern not found, append new
+            echo "${Replace}" >> "${File}"
+    fi
 }
 
 
 
 function configureNetwork
 {
-        echo "# This file describes the network interfaces available on your system
+    cd "${curPath}"
+    echo "# This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
 # The loopback network interface
@@ -125,6 +127,7 @@ ff02::2 ip6-allrouters" > "/etc/hosts"
 
 function preseeding
 {
+    cd "${curPath}"
     echo "
 postfix postfix/mailname string ${hostname}.${domain}
 postfix postfix/main_mailer_type select Internet Site
@@ -157,7 +160,7 @@ mailman mailman/default_server_language select en
 
 function installPackages
 {
-
+    cd "${curPath}"
     echo "deb http://ftp.${country,,}.debian.org/debian/ wheezy main contrib non-free
 deb-src http://ftp.${country,,}.debian.org/debian/ wheezy main contrib non-free
 
@@ -182,6 +185,7 @@ deb-src http://ftp.${country,,}.debian.org/debian/ wheezy-updates main contrib n
 
 function configureMySQL
 {
+    cd "${curPath}"
     case "${useUTF8}" in
         y)  echo "Updating Mysql to UTF8"
             updateSettings "/etc/mysql/my.cnf" '\[client\]' "\[client\]\ncharacter_set=utf8\ndefault-character-set=utf8"
@@ -202,6 +206,7 @@ function configureMySQL
 
 function configurePostfix
 {
+    cd "${curPath}"
     updateSettings "/etc/postfix/master.cf" 'submission inet n' "submission inet n       -       -       -       -       smtpd"
     updateSettings "/etc/postfix/master.cf" 'smtps     inet  n' "smtps     inet  n       -       -       -       -       smtpd"
     updateSettings "/etc/postfix/master.cf" 'syslog_name=postfix\/submission' "  -o syslog_name=postfix\/submission"
@@ -216,6 +221,7 @@ function configurePostfix
 
 function configureApache
 {
+    cd "${curPath}"
     updateSettings "/etc/apache2/mods-available/suphp.conf" '<FilesMatch' "    #<FilesMatch \"\\\.ph\(p3\?\|tml\)\$\">"
     updateSettings "/etc/apache2/mods-available/suphp.conf" 'SetHandler' "    #    SetHandler application\/x-httpd-suphp"
     updateSettings "/etc/apache2/mods-available/suphp.conf" '\/FilesMatch' "    #<\/FilesMatch>\n        AddType application\/x-httpd-suphp \.php \.php3 \.php4 \.php5 \.phtml"
@@ -239,6 +245,7 @@ function configureApache
 
 function configureMailman
 {
+    cd "${curPath}"
     case "${mailman}" in
         y)  echo "Installing Mailman"
             apt-get -y install mailman
@@ -267,6 +274,7 @@ mailman-unsubscribe:  "|/var/lib/mailman/mail/mailman unsubscribe mailman"' >> "
 
 function configurePureFTPd
 {
+    cd "${curPath}"
     updateSettings "/etc/default/pure-ftpd-common" 'STANDALONE_OR_INETD=' "STANDALONE_OR_INETD=standalone"
     updateSettings "/etc/default/pure-ftpd-common" 'VIRTUALCHROOT=' "VIRTUALCHROOT=true"
     echo 1 > /etc/pure-ftpd/conf/TLS
@@ -284,6 +292,7 @@ function configurePureFTPd
 
 function configureQuota
 {
+    cd "${curPath}"
     sed -i -e 's/errors=remount-ro/errors=remount-ro,usrjquota=quota.user,grpjquota=quota.group,jqfmt=vfsv0/g' /etc/fstab
     mount -o remount /
     quotacheck -avugm
@@ -294,6 +303,7 @@ function configureQuota
 
 function configureAWstats
 {
+    cd "${curPath}"
     sed -i '/r/ s/^/# /g' "/etc/cron.d/awstats"
 }
 
@@ -301,6 +311,7 @@ function configureAWstats
 
 function configureJailkit
 {
+    cd "${curPath}"
     case "${jailkit}" in
         y)  echo "Installing Jailkit"
             apt-get -y install build-essential autoconf automake1.9 libtool flex bison debhelper binutils-gold
@@ -322,6 +333,7 @@ function configureJailkit
 
 function configureFail2ban
 {
+    cd "${curPath}"
     echo '
 [dovecot-pop3imap]
 enabled = true
@@ -351,6 +363,7 @@ ignoreregex =' > "/etc/fail2ban/filter.d/dovecot-pop3imap.conf"
 
 function installISPConfig
 {
+    cd "${curPath}"
     if [[ -z "${commonname}" ]]
     then
         commonname="${hostname}.${domain}"
@@ -364,6 +377,7 @@ function installISPConfig
 
 function installHorde
 {
+    cd "${curPath}"
     case "${horde}" in
         y)  echo "Installing Horde"
             apt-get -y install php5-sasl php5-intl libssh2-php php5-curl php-http php5-xmlrpc php5-geoip php5-ldap php5-memcache php5-memcached php5-tidy
