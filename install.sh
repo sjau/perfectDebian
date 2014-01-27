@@ -15,49 +15,49 @@ domain="mydomain.com"
 
 
 ### SSL updateSettings
-country="CH"    # Your country, 2-letter abbreviation
-state="Kanton"      # Your state
-city="Stadt"    # Your city
-organization="Unternehmung"      # e.g. Organization, Company name or something
-unit="Sektion"   # e.g. Organizational Unit, Section or something
-commonname="" # Leave empty, then your FQDN will be used as sated above with hostname and domain name
-email="user@mydomain.com"       # Your email address
+country="CH"                            # Your country, 2-letter abbreviation
+state="State"                           # Your state
+city="Town"                             # Your city
+organization="Company"                  # e.g. Organization, Company name or something
+unit="Unit"                             # e.g. Organizational Unit, Section or something
+commonname=""                           # Leave empty, then your FQDN will be used as sated above with hostname and domain name
+email="user@mydomain.com"               # Your email address
 
 
 ### MySQL Settings
-useUTF8="y"     # Set to 'y' run server by default as utf-8
+useUTF8="y"                             # Set to 'y' run server by default as utf-8
 mysqlpassword="mypassword"
-bind="y"        # Set to 'y' for mysql to listen on all interfaces and not just localhost
+bind="y"                                # Set to 'y' for mysql to listen on all interfaces and not just localhost
 
 
 ### Apache Settings
-webdav="y"      # Set to 'y' to enable WebDAV
-ruby="y"        # Set to 'y' to enable ruby on webserver
+webdav="y"                              # Set to 'y' to enable WebDAV
+ruby="y"                                # Set to 'y' to enable ruby on webserver
 
 
 ### Mail Man
-mailman="y"     # Set to 'y' to enable Mailman
+mailman="y"                             # Set to 'y' to enable Mailman
 mailmanemail="lists@mydomain.com"       # Set email of the person running the list; email must be user@domain.com and can't be user@sub.domain.com
 mailmanpassword="mypassword" 
 
 
 ### Jailkit
-jailkit="y"     # Set to 'y' to enable Jailkit
+jailkit="y"                             # Set to 'y' to enable Jailkit
 
 
 ### ISPConfig
-databasename="dbispconfig"        # Set ISPConfig Database Name
-port="8080"     # Set ISPConfig Port
-ssl="y" # Set to 'y' to use SSL to access ISPCConfig
+databasename="dbispconfig"              # Set ISPConfig Database Name
+port="8080"                             # Set ISPConfig Port
+ssl="y"                                 # Set to 'y' to use SSL to access ISPCConfig
 
 
 ### Horde
-horde="y"       # Set 'y' to install Horde
-hordedatabase="horde"   # Set Horde Databasename
-hordeuser="horde"       # Set MySQL Horde Username
-hordepassword="mypassword"      # Set password for Horde Username
+horde="y"                               # Set 'y' to install Horde
+hordedatabase="horde"                   # Set Horde Databasename
+hordeuser="horde"                       # Set MySQL Horde Username
+hordepassword="mypassword"              # Set password for Horde Username
 hordefilesystem="/var/www/horde"        # Set filesystem location for horde
-hordeadmin="admin@mydomain"     # Set existing mail user with administrator permissions
+hordeadmin="admin@mydomain"             # Set existing mail user with administrator permissions
 
 
 # Detailed installation steps at http://www.howtoforge.com/perfect-server-debian-wheezy-apache2-bind-dovecot-ispconfig-3
@@ -226,7 +226,7 @@ function configureApache
     updateSettings "/etc/apache2/mods-available/suphp.conf" 'SetHandler' "    #    SetHandler application\/x-httpd-suphp"
     updateSettings "/etc/apache2/mods-available/suphp.conf" '\/FilesMatch' "    #<\/FilesMatch>\n        AddType application\/x-httpd-suphp \.php \.php3 \.php4 \.php5 \.phtml"
 
-    a2enmod suexec rewrite ssl actions include actions fastcgi alias
+    a2enmod suexec rewrite ssl actions include actions fastcgi alias fcgid
     case "${webdav}" in
         y)  echo "Enabling WebDAV on Apache2"
             a2enmod dav_fs dav auth_digest
@@ -461,20 +461,20 @@ Alias /AutoDiscover/AutoDiscover.xml ${hordefilesystem}/rpc.php
 
 
 
-#dpkg-reconfigure dash
-#configureNetwork
-#installPackages
-#configureMySQL
-#configurePostfix
-#configureApache
-#configureMailman
-#configurePureFTPd
-#configureQuota
-#configureAWstats
-#configureJailkit
-#configureFail2ban
-#installISPConfig
-#installHorde
+dpkg-reconfigure dash
+configureNetwork
+installPackages
+configureMySQL
+configurePostfix
+configureApache
+configureMailman
+configurePureFTPd
+configureQuota
+configureAWstats
+configureJailkit
+configureFail2ban
+installISPConfig
+installHorde
 
 
 #clear;
