@@ -477,10 +477,20 @@ installISPConfig
 installHorde
 
 
-#clear;
+
+if [[ "${ssl}" = "y" ]]
+then
+    $s="s"
+fi
+
+clear
+
 echo ""
 echo ""
 echo "Installation of Perfect Server, ISPConfig and - if selected - Horde Webmail complete. Please reboot server and connect to new IP if it was altered."
+echo ""
+echo "You can now access IPSConfig at http${s}://${ip}:${port} or http${s}://${hostname}.${domain}:${port}
+echo "and Horde can be access on any domain (or IP) as /horde e.g. http://${hostname}.${domain}/horde"
 
 
 #### At the end make a reboot - to also use new network settings
