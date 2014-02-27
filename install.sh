@@ -460,8 +460,11 @@ Alias /AutoDiscover/AutoDiscover.xml ${hordefilesystem}/rpc.php
 
 
 
+# Set default shell to bash
+echo "dash dash/sh boolean false" | debconf-set-selections
+dpkg-reconfigure -f noninteractive dash > /dev/null 2>&1
 
-dpkg-reconfigure dash
+# Run the individual functions
 configureNetwork
 installPackages
 configureMySQL
