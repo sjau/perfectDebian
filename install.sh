@@ -1,6 +1,6 @@
 #!/bin/bash
 
-### Network updateSettings
+### Network Settings
 interface="eth0"
 ip="10.0.0.100"
 netmask="255.255.255.0"
@@ -14,7 +14,7 @@ hostname="ispc"
 domain="mydomain.com"
 
 
-### SSL updateSettings
+### SSL Settings
 country="CH"                            # Your country, 2-letter abbreviation
 state="State"                           # Your state
 city="Town"                             # Your city
