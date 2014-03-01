@@ -94,6 +94,8 @@ function updateSettings
 function configureNetwork
 {
     cd "${curPath}"
+    # Make backup of curent interfaces
+    cp "/etc/network/interfaces" "/etc/network/interfaces.orig"
     echo "# This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
