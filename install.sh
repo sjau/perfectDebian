@@ -58,6 +58,8 @@ hordeuser="horde"                       # Set MySQL Horde Username
 hordepassword="mypassword"              # Set password for Horde Username
 hordefilesystem="/var/www/horde"        # Set filesystem location for horde
 hordeadmin="admin@mydomain"             # Set existing mail user with administrator permissions
+hordemysql="mysql"						# Set your perferred mysql driver, either "mysql" for mysql/pdo or "mysqli" for mysqli.
+										# See discussion: http://lists.horde.org/archives/horde/Week-of-Mon-20130121/046301.html
 
 
 # Detailed installation steps at http://www.howtoforge.com/perfect-server-debian-wheezy-apache2-bind-dovecot-ispconfig-3
@@ -390,7 +392,7 @@ function installHorde
             ./horderoleexpect "${hordefilesystem}"
             pear install -a -B horde/webmail
             mysql -u root --password=${mysqlpassword} --batch --silent -e "CREATE DATABASE ${hordedatabase}; GRANT ALL ON ${hordedatabase}.* TO ${hordeuser}@localhost IDENTIFIED BY '${hordepassword}'; FLUSH PRIVILEGES;";
-            ./hordewebmailexpect "${hordeuser}" "${hordepassword}" "${hordedatabase}" "${hordefilesystem}" "${hordeadmin}"
+            ./hordewebmailexpect "${hordeuser}" "${hordepassword}" "${hordedatabase}" "${hordefilesystem}" "${hordeadmin}" "${hordemysql}"
             mkdir "${hordefilesystem}/phptmp/"
             chown -R www-data:www-data "${hordefilesystem}"
             pear install channel://pear.php.net/SOAP-0.13.0

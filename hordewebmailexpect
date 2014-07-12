@@ -5,6 +5,7 @@ set hordepassword [lindex $argv 1]
 set hordedatabase [lindex $argv 2]
 set hordefilesystem [lindex $argv 3]
 set hordeadmin [lindex $argv 4]
+set hordemysql [lindex $argv 5]
 
 
 spawn webmail-install
@@ -12,7 +13,7 @@ spawn webmail-install
 
 while {1} {
     expect {
-        -re {What database backend .*}          {send mysql\r}
+        -re {What database backend .*}          {send $hordemysql\r}
         -re {Request persistent .*}             {send 0\r}
         -re {Username to connect .*}            {send $hordeuser\r}
         -re {Password to connect .*}            {send $hordepassword\r}
