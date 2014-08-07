@@ -192,10 +192,10 @@ function configureMySQL
     cd "${curPath}"
     case "${useUTF8}" in
         y)  echo "Updating Mysql to UTF8"
-            updateSettings "/etc/mysql/my.cnf" '\[client\]' "\[client\]\ncharacter-sets-dir = /usr/share/mysql/charsets\ndefault-character-set = utf8"
-            updateSettings "/etc/mysql/my.cnf" '\[mysqld\]' "\[mysqld\]\ncharacter-set-server=utf8\ncollation_server=utf8_unicode_ci\ninit-connect='SET NAMES utf8'"
-            updateSettings "/etc/mysql/my.cnf" '\[mysqldump\]' "\[mysqldump\]\ncharacter-sets-dir = /usr/share/mysql/charsets\ndefault-character-set = utf8"
-            updateSettings "/etc/mysql/my.cnf" '\[mysql\]' "\[mysqldump\]\ncharacter-sets-dir = /usr/share/mysql/charsets\ndefault-character-set = utf8"
+            updateSettings "/etc/mysql/my.cnf" '\[client\]' "\[client\]\ncharacter-sets-dir = /usr/share/mysql/charsets\ndefault-character-set = utf8mb4"
+            updateSettings "/etc/mysql/my.cnf" '\[mysqld\]' "\[mysqld\]\ncharacter-set-server=utf8mb4\ncollation_server=utf8mb4_unicode_ci\ninit-connect='SET NAMES utf8mb4'"
+            updateSettings "/etc/mysql/my.cnf" '\[mysqldump\]' "\[mysqldump\]\ncharacter-sets-dir = /usr/share/mysql/charsets\ndefault-character-set = utf8mb4"
+            updateSettings "/etc/mysql/my.cnf" '\[mysql\]' "\[mysqldump\]\ncharacter-sets-dir = /usr/share/mysql/charsets\ndefault-character-set = utf8mb4"
                 ;;
         *)  echo ""
     esac
