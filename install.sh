@@ -62,6 +62,12 @@ hordemysql="mysql"						# Set your perferred mysql driver, either "mysql" for my
 										# See discussion: http://lists.horde.org/archives/horde/Week-of-Mon-20130121/046301.html
 
 
+### LogJam
+logjam="y"                              # Set to 'y' to enalbe LogJam security measures - read more here: https://weakdh.org/
+dhkeysize="4096"                        # Set keysize for Diffie-Hellman, at least 2048bit, 4096 will require a long time
+
+
+
 # Detailed installation steps at https://www.howtoforge.com/tutorial/perfect-server-debian-8-jessie-apache-bind-dovecot-ispconfig-3
 
 
@@ -477,6 +483,35 @@ Alias /AutoDiscover/AutoDiscover.xml ${hordefilesystem}/rpc.php
 
 
 
+function applyLogJam
+{
+    cd "${curPath}"
+    case "${logjam}" in
+        y)  echo "Applying LogJam security measures"
+            # Generate new DH cert
+            openssl dhparam -out "/etc/ssl/private/dh-${dhkeysize}.pem" ${dhkeysize}
+            updateSettings "/etc/apache2/mods-available/ssl.conf" 'SSLProtocol all' '        SSLProtocol             all -SSLv2 -SSLv3'
+            # Secure Apache2
+            updateSettings "/etc/apache2/mods-available/ssl.conf" 'SSLCipherSuite' '        SSLCipherSuite          ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA'
+            updateSettings "/etc/apache2/mods-available/ssl.conf" 'SSLHonorCipherOrder' '        SSLHonorCipherOrder on'
+                    # The SSLOpenSSLConfCmd DHParameters command isn't working on Jessie due to OpenSSL being v1.0.1 instead of v1.0.2
+                    #            updateSettings "/etc/apache2/mods-available/ssl.conf" 'SSLStrictSNIVHostCheck On' "        #SSLStrictSNIVHostCheck On\n        SSLOpenSSLConfCmd DHParameters \"/etc/ssl/private/dh-${dhkeysize}.pem\""
+            # Secure Postfix
+            postconf -e "smtpd_tls_mandatory_exclude_ciphers = aNULL, eNULL, EXPORT, DES, RC4, MD5, PSK, aECDH, EDH-DSS-DES-CBC3-SHA, EDH-RSA-DES-CDC3-SHA, KRB5-DE5, CBC3-SHA"
+            postconf -e "smtpd_tls_dh1024_param_file = /etc/ssl/private/dh-${dhkeysize}.pem"
+            # Secure Dovecot
+            echo 'ssl_cipher_list=ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA' >> '/etc/dovecot/dovecot.conf'
+            echo 'ssl_prefer_server_ciphers = yes' >> '/etc/dovecot/dovecot.conf'
+            echo "ssl_dh_parameters_length = ${dhkeysize}" >> '/etc/dovecot/dovecot.conf'
+            # PureFTPD -> The Wrapper Script is already fine, only the TLSCipherSuite needs adjustement
+            echo 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA' > '/etc/pure-ftpd/conf/TLSCipherSuite'
+            ;;
+        *)  echo ""
+    esac
+}
+
+
+
 # Set default shell to bash
 echo "dash dash/sh boolean false" | debconf-set-selections
 dpkg-reconfigure -f noninteractive dash > /dev/null 2>&1
@@ -495,7 +530,7 @@ configureJailkit
 configureFail2ban
 installISPConfig
 installHorde
-
+applyLogJam
 
 
 if [[ "${ssl}" = "y" ]]
