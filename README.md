@@ -1,14 +1,16 @@
 perfectDebian
 =============
 
-An installer script to automate a "Perfect Debian Server" for ISPConfig according to falko's instructions
+An installer script to automate a "Perfect Debian Server" for ISPConfig according to till's instructions here:
+
+https://www.howtoforge.com/tutorial/perfect-server-debian-8-jessie-apache-bind-dovecot-ispconfig-3/
 
 
 
 Howto Use
 =============
 
-1. Install a basic debian system according to pages 1-2 here: http://www.howtoforge.com/perfect-server-debian-wheezy-apache2-bind-dovecot-ispconfig-3
+1. Install a basic debian system
 
 2. Install git: apt-get install git
 
@@ -25,7 +27,7 @@ Howto Use
 Limitations
 =============
 
-- This script is soley aimed to install ISPConfig on Debian Stable
+- This script is soley aimed to install ISPConfig on Debian Jessie
 
 - This script supports only 1 ethernet device and only 1 static IPv4 address -> if you have more devices and IPs, configure them after running
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ### Network Settings
 interface="eth0"
@@ -11,7 +11,7 @@ gateway="10.0.0.1"
 
 ### Hostname and Domain Name
 hostname="ispc"
-domain="mydomain.com"
+domain="domain.tld"
 
 
 ### SSL Settings
@@ -21,7 +21,7 @@ city="Town"                             # Your city
 organization="Company"                  # e.g. Organization, Company name or something
 unit="Unit"                             # e.g. Organizational Unit, Section or something
 commonname=""                           # Leave empty, then your FQDN will be used as sated above with hostname and domain name
-email="user@mydomain.com"               # Your email address
+email="user@domain.tld"               # Your email address
 
 
 ### MySQL Settings
@@ -37,7 +37,7 @@ ruby="y"                                # Set to 'y' to enable ruby on webserver
 
 ### Mail Man
 mailman="y"                             # Set to 'y' to enable Mailman
-mailmanemail="lists@mydomain.com"       # Set email of the person running the list; email must be user@domain.com and can't be user@sub.domain.com
+mailmanemail="lists@domain.tld"       # Set email of the person running the list; email must be user@domain.com and can't be user@sub.domain.com
 mailmanpassword="mypassword" 
 
 
@@ -57,12 +57,12 @@ hordedatabase="horde"                   # Set Horde Databasename
 hordeuser="horde"                       # Set MySQL Horde Username
 hordepassword="mypassword"              # Set password for Horde Username
 hordefilesystem="/var/www/horde"        # Set filesystem location for horde
-hordeadmin="admin@mydomain"             # Set existing mail user with administrator permissions
+hordeadmin="admin@domain.tld"             # Set existing mail user with administrator permissions
 hordemysql="mysql"						# Set your perferred mysql driver, either "mysql" for mysql/pdo or "mysqli" for mysqli.
 										# See discussion: http://lists.horde.org/archives/horde/Week-of-Mon-20130121/046301.html
 
 
-# Detailed installation steps at http://www.howtoforge.com/perfect-server-debian-wheezy-apache2-bind-dovecot-ispconfig-3
+# Detailed installation steps at https://www.howtoforge.com/tutorial/perfect-server-debian-8-jessie-apache-bind-dovecot-ispconfig-3
 
 
 
@@ -165,23 +165,23 @@ mailman mailman/default_server_language select en
 function installPackages
 {
     cd "${curPath}"
-    echo "deb http://ftp.${country,,}.debian.org/debian/ wheezy main contrib non-free
-deb-src http://ftp.${country,,}.debian.org/debian/ wheezy main contrib non-free
+    echo "deb http://ftp.${country,,}.debian.org/debian/ jessie main contrib non-free
+deb-src http://ftp.${country,,}.debian.org/debian/ jessie main contrib non-free
 
-deb http://security.debian.org/ wheezy/updates main contrib non-free
-deb-src http://security.debian.org/ wheezy/updates main contrib non-free
+deb http://security.debian.org/ jessie/updates main contrib non-free
+deb-src http://security.debian.org/ jessie/updates main contrib non-free
 
-# wheezy-updates, previously known as 'volatile'
-deb http://ftp.${country,,}.debian.org/debian/ wheezy-updates main contrib non-free
-deb-src http://ftp.${country,,}.debian.org/debian/ wheezy-updates main contrib non-free" > "/etc/apt/sources.list"
+# jessie-updates, previously known as 'volatile'
+deb http://ftp.${country,,}.debian.org/debian/ jessie-updates main contrib non-free
+deb-src http://ftp.${country,,}.debian.org/debian/ jessie-updates main contrib non-free" > "/etc/apt/sources.list"
     apt-get update
     apt-get -y upgrade
     apt-get -y install debconf-utils
     echo -e "debconf debconf/frontend select Noninteractive\ndebconf debconf/priority select critical" | debconf-set-selections
     preseeding
     cat packages.preseed | debconf-set-selections
-    apt-get -y install openssh-server ntp ntpdate postfix postfix-mysql postfix-doc mysql-client mysql-server openssl getmail4 rkhunter binutils dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-sieve sudo amavisd-new spamassassin clamav clamav-daemon zoo unzip bzip2 arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl zip libnet-dns-perl apache2 apache2.2-common apache2-doc apache2-mpm-prefork apache2-utils libexpat1 ssl-cert libapache2-mod-php5 php5 php5-common php5-gd php5-mysql php5-imap phpmyadmin php5-cli php5-cgi libapache2-mod-fcgid apache2-suexec php-pear php-auth php5-mcrypt mcrypt php5-imagick imagemagick libapache2-mod-suphp libruby libapache2-mod-ruby libapache2-mod-python php5-curl php5-intl php5-memcache php5-memcached php5-ming php5-ps php5-pspell php5-recode php5-snmp php5-sqlite php5-tidy php5-xmlrpc php5-xsl memcached php5-xcache libapache2-mod-fastcgi php5-fpm expect pure-ftpd-common pure-ftpd-mysql quota quotatool bind9 dnsutils vlogger webalizer awstats geoip-database libclass-dbi-mysql-perl fail2ban
-    update-rc.d -f spamassassin remove
+    apt-get -y install openssh-server ntp ntpdate postfix postfix-mysql postfix-doc mariadb-client mariadb-server openssl getmail4 rkhunter binutils dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-sieve dovecot-lmtpd sudo amavisd-new spamassassin clamav clamav-daemon zoo unzip bzip2 arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl zip libnet-dns-perl apache2 apache2.2-common apache2-doc apache2-mpm-prefork apache2-utils libexpat1 ssl-cert libapache2-mod-php5 php5 php5-common php5-gd php5-mysql php5-imap phpmyadmin php5-cli php5-cgi libapache2-mod-fcgid apache2-suexec php-pear php-auth php5-mcrypt mcrypt php5-imagick imagemagick libruby libapache2-mod-python php5-curl php5-intl php5-memcache php5-memcached php5-pspell php5-recode php5-sqlite php5-tidy php5-xmlrpc php5-xsl memcached libapache2-mod-passenger php5-xcache libapache2-mod-fastcgi php5-fpm expect pure-ftpd-common pure-ftpd-mysql quota quotatool bind9 dnsutils vlogger webalizer awstats geoip-database libclass-dbi-mysql-perl fail2ban
+    systemctl disable spamassassin
 
 }
 
@@ -192,10 +192,11 @@ function configureMySQL
     cd "${curPath}"
     case "${useUTF8}" in
         y)  echo "Updating Mysql to UTF8"
-            updateSettings "/etc/mysql/my.cnf" '\[client\]' "\[client\]\ncharacter-sets-dir = /usr/share/mysql/charsets\ndefault-character-set = utf8mb4"
-            updateSettings "/etc/mysql/my.cnf" '\[mysqld\]' "\[mysqld\]\ncharacter-set-server=utf8mb4\ncollation_server=utf8mb4_unicode_ci\ninit-connect='SET NAMES utf8mb4'"
-            updateSettings "/etc/mysql/my.cnf" '\[mysqldump\]' "\[mysqldump\]\ncharacter-sets-dir = /usr/share/mysql/charsets\ndefault-character-set = utf8mb4"
-            updateSettings "/etc/mysql/my.cnf" '\[mysql\]' "\[mysqldump\]\ncharacter-sets-dir = /usr/share/mysql/charsets\ndefault-character-set = utf8mb4"
+            updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'default-character-set' 'default-character-set = utf8'
+            updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'character-set-server' 'character-set-server  = utf8'
+            updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'character-set-server' 'collation-server      = utf8_general_ci'
+            updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'character_set_server' 'character_set_server   = utf8'
+            updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'collation_server' 'collation_server       = utf8_general_ci'
                 ;;
         *)  echo ""
     esac
@@ -213,14 +214,13 @@ function configureMySQL
 function configurePostfix
 {
     cd "${curPath}"
-    updateSettings "/etc/postfix/master.cf" 'submission inet n' "submission inet n       -       -       -       -       smtpd"
-    updateSettings "/etc/postfix/master.cf" 'smtps     inet  n' "smtps     inet  n       -       -       -       -       smtpd"
-    updateSettings "/etc/postfix/master.cf" 'syslog_name=postfix\/submission' "  -o syslog_name=postfix\/submission"
-    updateSettings "/etc/postfix/master.cf" 'smtpd_tls_security_level=encrypt' "  -o smtpd_tls_security_level=encrypt"
-    updateSettings "/etc/postfix/master.cf" 'smtpd_sasl_auth_enable=yes' "  -o smtpd_sasl_auth_enable=yes"
-    updateSettings "/etc/postfix/master.cf" 'smtpd_client_restrictions=permit_sasl_authenticated,reject' "  -o smtpd_client_restrictions=permit_sasl_authenticated,reject"
-    updateSettings "/etc/postfix/master.cf" 'smtpd_tls_wrappermode=yes' "  -o smtpd_tls_wrappermode=yes"
-    updateSettings "/etc/postfix/master.cf" 'syslog_name=postfix\/smtps' "  -o syslog_name=postfix\/smtps"
+    updateSettings "/etc/postfix/master.cf" 'submission inet n' 'submission inet n       -       -       -       -       smtpd'
+    updateSettings "/etc/postfix/master.cf" 'syslog_name=postfix/submission' '  -o syslog_name=postfix/submission'
+    updateSettings "/etc/postfix/master.cf" 'smtpd_tls_security_level' '  -o smtpd_tls_security_level=encrypt'
+    updateSettings "/etc/postfix/master.cf" 'smtpd_sasl_auth_enable' "  -o smtpd_sasl_auth_enable=yes\n  -o smtpd_client_restrictions=permit_sasl_authenticated,reject"
+    updateSettings "/etc/postfix/master.cf" 'smtps     inet  n' 'smtps     inet  n       -       -       -       -       smtpd'
+    updateSettings "/etc/postfix/master.cf" 'syslog_name=postfix/smtps' '  -o syslog_name=postfix/smtps'
+    updateSettings "/etc/postfix/master.cf" 'smtpd_tls_wrappermode' '  -o smtpd_tls_wrappermode=yes'
 }
 
 
@@ -228,11 +228,7 @@ function configurePostfix
 function configureApache
 {
     cd "${curPath}"
-    updateSettings "/etc/apache2/mods-available/suphp.conf" '<FilesMatch' "    #<FilesMatch \"\\\.ph\(p3\?\|tml\)\$\">"
-    updateSettings "/etc/apache2/mods-available/suphp.conf" 'SetHandler' "    #    SetHandler application\/x-httpd-suphp"
-    updateSettings "/etc/apache2/mods-available/suphp.conf" '\/FilesMatch' "    #<\/FilesMatch>\n        AddType application\/x-httpd-suphp \.php \.php3 \.php4 \.php5 \.phtml"
-
-    a2enmod suexec rewrite ssl actions include actions fastcgi alias fcgid
+    a2enmod suexec rewrite ssl actions include cgi
     case "${webdav}" in
         y)  echo "Enabling WebDAV on Apache2"
             a2enmod dav_fs dav auth_digest
@@ -270,6 +266,8 @@ mailman-subscribe:    "|/var/lib/mailman/mail/mailman subscribe mailman"
 mailman-unsubscribe:  "|/var/lib/mailman/mail/mailman unsubscribe mailman"' >> "/etc/aliases"
             newaliases
             ln -s "/etc/mailman/apache.conf" "/etc/apache2/conf.d/mailman.conf"
+            service postfix start
+            service apache2 restart
             service mailman start
             ;;
         *)  echo ""
@@ -292,6 +290,7 @@ function configurePureFTPd
     mkdir -p '/etc/ssl/private/'
     openssl req -x509 -nodes -days 7300 -newkey rsa:4096 -subj "/C=${country}/ST=${state}/L=${city}/O=${organization}/OU=${unit}/CN=${commonname}/emailAddress=${email}" -keyout "/etc/ssl/private/pure-ftpd.pem" -out "/etc/ssl/private/pure-ftpd.pem"
     chmod 600 /etc/ssl/private/pure-ftpd.pem
+    service pure-ftpd-mysql restart
 }
 
 
@@ -320,11 +319,11 @@ function configureJailkit
     cd "${curPath}"
     case "${jailkit}" in
         y)  echo "Installing Jailkit"
-            apt-get -y install build-essential autoconf automake1.9 libtool flex bison debhelper binutils-gold
+            apt-get -y install build-essential autoconf automake libtool flex bison debhelper binutils
             cd /tmp
-            wget http://olivier.sessink.nl/jailkit/jailkit-2.15.tar.gz
-            tar xvfz jailkit-2.15.tar.gz
-            cd jailkit-2.15
+            wget http://olivier.sessink.nl/jailkit/jailkit-2.17.tar.gz
+            tar xvfz jailkit-2.17.tar.gz
+            cd jailkit-2.17
             ./debian/rules binary
             for file in /tmp/*.deb
             do
@@ -341,6 +340,13 @@ function configureFail2ban
 {
     cd "${curPath}"
     echo '
+[pureftpd]
+enabled  = true
+port     = ftp
+filter   = pureftpd
+logpath  = /var/log/syslog
+maxretry = 3
+
 [dovecot-pop3imap]
 enabled = true
 filter = dovecot-pop3imap
@@ -348,10 +354,10 @@ action = iptables-multiport[name=dovecot-pop3imap, port="pop3,pop3s,imap,imaps",
 logpath = /var/log/mail.log
 maxretry = 5
 
-[sasl]
+[postfix-sasl]
 enabled  = true
 port     = smtp
-filter   = sasl
+filter   = postfix-sasl
 logpath  = /var/log/mail.log
 maxretry = 3' >> "/etc/fail2ban/jail.local"
 
@@ -360,8 +366,14 @@ failregex = .*pure-ftpd: \(.*@<HOST>\) \[WARNING\] Authentication failed for use
 ignoreregex =' > "/etc/fail2ban/filter.d/pureftpd.conf"
 
     echo '[Definition]
+failregex = .*pure-ftpd: \(.*@<HOST>\) \[WARNING\] Authentication failed for user.*
+ignoreregex =' > "/etc/fail2ban/filter.d/pureftpd.conf"
+
+    echo '[Definition]
 failregex = (?: pop3-login|imap-login): .*(?:Authentication failure|Aborted login \(auth failed|Aborted login \(tried to use disabled|Disconnected \(auth failed|Aborted login \(\d+ authentication attempts).*rip=(?P<host>\S*),.*
 ignoreregex =' > "/etc/fail2ban/filter.d/dovecot-pop3imap.conf"
+
+    echo 'ignoreregex =' >> /etc/fail2ban/filter.d/postfix-sasl.conf
 
 }
 
@@ -395,15 +407,13 @@ function installHorde
             ./hordewebmailexpect "${hordeuser}" "${hordepassword}" "${hordedatabase}" "${hordefilesystem}" "${hordeadmin}" "${hordemysql}"
             mkdir "${hordefilesystem}/phptmp/"
             chown -R www-data:www-data "${hordefilesystem}"
-            pear install channel://pear.php.net/SOAP-0.13.0
-            pear install pear/MDB2#mysql
+            pear install channel://pear.php.net/MDB2_Driver_mysql-1.5.0b4
             pear install channel://pear.php.net/HTTP_WebDAV_Server-1.0.0RC7
             pear install channel://pear.php.net/XML_Serializer-0.20.2
             pear install channel://pear.php.net/Date_Holidays-0.21.8
             pear install Net_LDAP
-            pear install channel://pear.php.net/Text_CAPTCHA-0.5.0
             pear install pear/HTTP_Request2
-            pear install channel://pear.php.net/Console_Color2-0.1.1
+            pear install channel://pear.php.net/Console_Color2-0.1.2
             echo "Alias /Microsoft-Server-ActiveSync ${hordefilesystem}/rpc.php
 Alias /horde ${hordefilesystem}
 Alias /autodiscover/autodiscover.xml ${hordefilesystem}/rpc.php
@@ -418,7 +428,8 @@ Alias /AutoDiscover/AutoDiscover.xml ${hordefilesystem}/rpc.php
            php_value include_path \".:/usr/share/php\"
            php_value open_basedir \"none\"
            php_value upload_tmp_dir \"${hordefilesystem}/phptmp/\"
-</Directory>" > /etc/apache2/conf.d/horde.conf
+</Directory>" > /etc/apache2/conf-available/horde.conf
+            a2enconf horde
             updateSettings "/var/www/horde/.htaccess" 'RewriteEngine On' "    RewriteEngine On\n    RewriteBase \/horde"
             pear install -a -B horde/passwd
             chown -R www-data:www-data "${hordefilesystem}/passwd"
@@ -501,8 +512,3 @@ echo "Please reboot server and connect to new IP if it was altered."
 echo ""
 echo "You can now access IPSConfig at http${s}://${ip}:${port} or http${s}://${hostname}.${domain}:${port}"
 echo "and Horde can be access on any domain (or IP) as /horde e.g. http://${hostname}.${domain}/horde"
-
-
-#### At the end make a reboot - to also use new network settings
-
-#debconf-get-selections |grep PACKAGE
