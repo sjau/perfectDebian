@@ -17,9 +17,10 @@ set city [lindex $argv 13]
 set organization [lindex $argv 14]
 set unit [lindex $argv 15]
 set email [lindex $argv 16]
+set adminpassword [lindex $argv 17]
 
 
-spawn php -q /tmp/ispconfig3_install/install/install.php
+spawn php -q /tmp/ISPC/ispconfig/install/install.php
 
 
 while {1} {
@@ -28,6 +29,7 @@ while {1} {
         -re {Installation mode .*\[.*\]:}        {send \r}
         -re {Full qualified hostname .*\[.*\]:}  {send \r}
         -re {MySQL server hostname .*\[.*\]:}    {send \r}
+        -re {MySQL server port .*\[.*\]:}        {send \r}
         -re {MySQL root username .*\[.*\]:}      {send \r}
         -re {MySQL root password .*\[.*\]:}      {send $mysqlpassword\r}
         -re {MySQL database .*\[.*\]:}           {send $databasename\r}
@@ -40,9 +42,10 @@ while {1} {
         -re {Common Name .*\[.*\]:}              {send $commonname\r}
         -re {Email Address .*\[.*\]:}            {send $email\r}
         -re {ISPConfig Port .*\[.*\]:}           {send $port\r}
+        -re {Admin password .*\[.*\]:}           {send $adminpassword\r}
         -re {Do you want a secure .*\[.*\]:}     {send $ssl\r}
         -re {A challenge password .*\[.*\]:}     {send \r}
-        -re {An optional company .*\[.*\]:} {send \r}
+        -re {An optional company .*\[.*\]:}      {send \r}
         eof                                      {break}
     }
 }

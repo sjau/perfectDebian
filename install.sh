@@ -32,7 +32,6 @@ bind="y"                                # Set to 'y' for mysql to listen on all 
 
 ### Apache Settings
 webdav="y"                              # Set to 'y' to enable WebDAV
-ruby="y"                                # Set to 'y' to enable ruby on webserver
 
 
 ### Mail Man
@@ -45,10 +44,15 @@ mailmanpassword="mypassword"
 jailkit="y"                             # Set to 'y' to enable Jailkit
 
 
+### UFW
+ufw="y"                                 # Set to 'y' to install ufw
+
+
 ### ISPConfig
 databasename="dbispconfig"              # Set ISPConfig Database Name
 port="8080"                             # Set ISPConfig Port
-ssl="y"                                 # Set to 'y' to use SSL to access ISPCConfig
+adminpassword="admin"                   # Set the ISPConfig Admin Password
+ssl="y"                                 # Set to 'y' to use SSL to access ISPConfig
 
 
 ### Horde
@@ -57,9 +61,13 @@ hordedatabase="horde"                   # Set Horde Databasename
 hordeuser="horde"                       # Set MySQL Horde Username
 hordepassword="mypassword"              # Set password for Horde Username
 hordefilesystem="/var/www/horde"        # Set filesystem location for horde
-hordeadmin="admin@domain.tld"             # Set existing mail user with administrator permissions
-hordemysql="mysql"						# Set your perferred mysql driver, either "mysql" for mysql/pdo or "mysqli" for mysqli.
-										# See discussion: http://lists.horde.org/archives/horde/Week-of-Mon-20130121/046301.html
+hordeadmin="admin@domain.tld"           # Set existing mail user with administrator permissions
+hordemysql="mysql"			# Set your perferred mysql driver, either "mysql" for mysql/pdo or "mysqli" for mysqli.
+					# See discussion: http://lists.horde.org/archives/horde/Week-of-Mon-20130121/046301.html
+
+
+### configureRoundCube
+roundcube="y"                           # Set to 'y' to install RoundCube
 
 
 ### LogJam
@@ -81,13 +89,11 @@ dhkeysize="4096"                        # Set keysize for Diffie-Hellman, at lea
 
 curPath=$( pwd )
 
-function updateSettings
-{
+function updateSettings {
     File="$1"
     Pattern="$2"
     Replace="$3"
-    if grep "${Pattern}" "${File}" >/dev/null;
-    then
+    if grep "${Pattern}" "${File}" >/dev/null; then
             # Pattern found, replace line
             sed -i s/.*"${Pattern}".*/"${Replace}"/g "${File}"
             echo ""
@@ -99,8 +105,7 @@ function updateSettings
 
 
 
-function configureNetwork
-{
+function configureNetwork {
     cd "${curPath}"
     # Make backup of curent interfaces
     cp "/etc/network/interfaces" "/etc/network/interfaces.orig"
@@ -128,24 +133,23 @@ ${ip}   ${hostname}.${domain}     ${hostname}
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters" > "/etc/hosts"
 
-    echo "${hostname}.${domain}" > "/etc/hostname"
-    /etc/init.d/hostname.sh start
-
+    echo "${hostname}" > "/etc/hostname"
+    # You can use sysctl call to set hostname so you don't have to reboot
+    sysctl kernel.hostname=${hostname}
 }
 
 
 
-function preseeding
-{
+function preseeding {
     cd "${curPath}"
     echo "
 postfix postfix/mailname string ${hostname}.${domain}
 postfix postfix/main_mailer_type select Internet Site
 postfix postfix/destinations string ${hostname}.${domain}, localhost.${domain}, , localhost
-mysql-server-5.5 mysql-server/root_password password ${mysqlpassword}
-mysql-server-5.5 mysql-server/root_password seen true
-mysql-server-5.5 mysql-server/root_password_again password ${mysqlpassword}
-mysql-server-5.5 mysql-server/root_password_again seen true
+mariadb-server-10.0 mysql-server/root_password password ${mysqlpassword}
+mariadb-server-10.0 mysql-server/root_password seen true
+mariadb-server-10.0 mysql-server/root_password_again password ${mysqlpassword}
+mariadb-server-10.0 mysql-server/root_password_again seen true
 phpmyadmin phpmyadmin/internal/reconfiguring boolean false
 phpmyadmin phpmyadmin/missing-db-package-error select abort
 phpmyadmin phpmyadmin/setup-username string admin
@@ -164,13 +168,16 @@ phpmyadmin phpmyadmin/purge boolean false
 mailman mailman/site_languages multiselect en
 mailman mailman/queue_files_present select abort installation
 mailman mailman/default_server_language select en
+roundcube-core roundcube/dbconfig-upgrade boolean true
+roundcube-core roundcube/database-type select mysql 
    " > "packages.preseed"
 }
 
 
-function installPackages
-{
+function installPackages {
     cd "${curPath}"
+    # Get key for HHVM
+    apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0x5a16e7281be7a449
     echo "deb http://ftp.${country,,}.debian.org/debian/ jessie main contrib non-free
 deb-src http://ftp.${country,,}.debian.org/debian/ jessie main contrib non-free
 
@@ -179,28 +186,29 @@ deb-src http://security.debian.org/ jessie/updates main contrib non-free
 
 # jessie-updates, previously known as 'volatile'
 deb http://ftp.${country,,}.debian.org/debian/ jessie-updates main contrib non-free
-deb-src http://ftp.${country,,}.debian.org/debian/ jessie-updates main contrib non-free" > "/etc/apt/sources.list"
+deb-src http://ftp.${country,,}.debian.org/debian/ jessie-updates main contrib non-free
+
+# HHVM
+deb http://dl.hhvm.com/debian jessie main" > "/etc/apt/sources.list"
     apt-get update
     apt-get -y upgrade
     apt-get -y install debconf-utils
     echo -e "debconf debconf/frontend select Noninteractive\ndebconf debconf/priority select critical" | debconf-set-selections
     preseeding
     cat packages.preseed | debconf-set-selections
-    apt-get -y install openssh-server ntp ntpdate postfix postfix-mysql postfix-doc mariadb-client mariadb-server openssl getmail4 rkhunter binutils dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-sieve dovecot-lmtpd sudo amavisd-new spamassassin clamav clamav-daemon zoo unzip bzip2 arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl zip libnet-dns-perl apache2 apache2.2-common apache2-doc apache2-mpm-prefork apache2-utils libexpat1 ssl-cert libapache2-mod-php5 php5 php5-common php5-gd php5-mysql php5-imap phpmyadmin php5-cli php5-cgi libapache2-mod-fcgid apache2-suexec php-pear php-auth php5-mcrypt mcrypt php5-imagick imagemagick libruby libapache2-mod-python php5-curl php5-intl php5-memcache php5-memcached php5-pspell php5-recode php5-sqlite php5-tidy php5-xmlrpc php5-xsl memcached libapache2-mod-passenger php5-xcache libapache2-mod-fastcgi php5-fpm expect pure-ftpd-common pure-ftpd-mysql quota quotatool bind9 dnsutils vlogger webalizer awstats geoip-database libclass-dbi-mysql-perl fail2ban
-    systemctl disable spamassassin
-
+    apt-get -y install expect curl ssh openssh-server ntp ntpdate postfix postfix-mysql postfix-doc mariadb-client mariadb-server openssl getmail4 rkhunter binutils dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-sieve dovecot-lmtpd sudo amavisd-new spamassassin clamav clamav-daemon zoo unzip bzip2 arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl zip libnet-dns-perl postgrey apache2 apache2.2-common apache2-doc apache2-mpm-prefork apache2-utils libexpat1 ssl-cert libapache2-mod-php5 php5 php5-common php5-gd php5-mysql php5-imap phpmyadmin php5-cli php5-cgi libapache2-mod-fcgid apache2-suexec php-pear php-auth php5-mcrypt mcrypt php5-imagick imagemagick libruby libapache2-mod-python php5-curl php5-intl php5-memcache php5-memcached php5-pspell php5-recode php5-sqlite php5-tidy php5-xmlrpc php5-xsl memcached libapache2-mod-passenger hhvm git libapache2-mod-fastcgi php5-fpm php5-xcache pure-ftpd-common pure-ftpd-mysql quota quotatool bind9 dnsutils haveged vlogger webalizer awstats geoip-database libclass-dbi-mysql-perl fail2ban
 }
 
 
 
-function configureMySQL
-{
+function configureMySQL {
     cd "${curPath}"
+    ./mysql_secure_installation_expect "${mysqlpassword}"
     case "${useUTF8}" in
         y)  echo "Updating Mysql to UTF8"
             updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'default-character-set' 'default-character-set = utf8'
             updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'character-set-server' 'character-set-server  = utf8'
-            updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'character-set-server' 'collation-server      = utf8_general_ci'
+            updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'collation-server' 'collation-server       = utf8_general_ci'
             updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'character_set_server' 'character_set_server   = utf8'
             updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'collation_server' 'collation_server       = utf8_general_ci'
                 ;;
@@ -217,42 +225,51 @@ function configureMySQL
 
 
 
-function configurePostfix
-{
+function configurePostfix {
     cd "${curPath}"
     updateSettings "/etc/postfix/master.cf" 'submission inet n' 'submission inet n       -       -       -       -       smtpd'
-    updateSettings "/etc/postfix/master.cf" 'syslog_name=postfix/submission' '  -o syslog_name=postfix/submission'
+    updateSettings "/etc/postfix/master.cf" 'syslog_name=postfix\/submission' '  -o syslog_name=postfix\/submission'
     updateSettings "/etc/postfix/master.cf" 'smtpd_tls_security_level' '  -o smtpd_tls_security_level=encrypt'
     updateSettings "/etc/postfix/master.cf" 'smtpd_sasl_auth_enable' "  -o smtpd_sasl_auth_enable=yes\n  -o smtpd_client_restrictions=permit_sasl_authenticated,reject"
     updateSettings "/etc/postfix/master.cf" 'smtps     inet  n' 'smtps     inet  n       -       -       -       -       smtpd'
-    updateSettings "/etc/postfix/master.cf" 'syslog_name=postfix/smtps' '  -o syslog_name=postfix/smtps'
+    updateSettings "/etc/postfix/master.cf" 'syslog_name=postfix\/smtps' '  -o syslog_name=postfix\/smtps'
     updateSettings "/etc/postfix/master.cf" 'smtpd_tls_wrappermode' '  -o smtpd_tls_wrappermode=yes'
 }
 
 
 
-function configureApache
-{
+function configureAmavisdSpamassassinClamav {
     cd "${curPath}"
-    a2enmod suexec rewrite ssl actions include cgi
+    updateSettings "/etc/clamav/clamd.conf" 'AllowSupplementaryGroups' 'AllowSupplementaryGroups true'
+    service spamassassin stop
+    systemctl disable spamassassin
+}
+
+
+
+function configureApache {
+    cd "${curPath}"
+    a2enmod suexec rewrite ssl actions include cgi headers actions fastcgi alias
     case "${webdav}" in
         y)  echo "Enabling WebDAV on Apache2"
             a2enmod dav_fs dav auth_digest
                 ;;
         *)  echo ""
     esac
-    case "${ruby}" in
-        y)  echo "Enabling Ruby on Apache2"
-            updateSettings "/etc/mime.types" 'application\/x-ruby' "#application\/x-ruby                             rb"
-                ;;
-        *)  echo ""
-    esac
 }
 
 
 
-function configureMailman
-{
+function configureLetsEncrypt {
+    cd /opt
+    git clone https://github.com/letsencrypt/letsencrypt
+    cd letsencrypt/
+    ./letsencrypt-auto --help
+}
+
+
+
+function configureMailman {
     cd "${curPath}"
     case "${mailman}" in
         y)  echo "Installing Mailman"
@@ -271,7 +288,7 @@ mailman-request:      "|/var/lib/mailman/mail/mailman request mailman"
 mailman-subscribe:    "|/var/lib/mailman/mail/mailman subscribe mailman"
 mailman-unsubscribe:  "|/var/lib/mailman/mail/mailman unsubscribe mailman"' >> "/etc/aliases"
             newaliases
-            ln -s "/etc/mailman/apache.conf" "/etc/apache2/conf.d/mailman.conf"
+            ln -s "/etc/mailman/apache.conf" "/etc/apache2/conf-enabled/mailman.conf"
             service postfix start
             service apache2 restart
             service mailman start
@@ -282,15 +299,13 @@ mailman-unsubscribe:  "|/var/lib/mailman/mail/mailman unsubscribe mailman"' >> "
 
 
 
-function configurePureFTPd
-{
+function configurePureFTPd {
     cd "${curPath}"
     updateSettings "/etc/default/pure-ftpd-common" 'STANDALONE_OR_INETD=' "STANDALONE_OR_INETD=standalone"
     updateSettings "/etc/default/pure-ftpd-common" 'VIRTUALCHROOT=' "VIRTUALCHROOT=true"
     echo 1 > /etc/pure-ftpd/conf/TLS
     mkdir -p /etc/ssl/private/
-    if [[ -z "${commonname}" ]]
-    then
+    if [[ -z "${commonname}" ]]; then
         commonname="${hostname}.${domain}"
     fi
     mkdir -p '/etc/ssl/private/'
@@ -301,8 +316,7 @@ function configurePureFTPd
 
 
 
-function configureQuota
-{
+function configureQuota {
     cd "${curPath}"
     sed -i -e 's/errors=remount-ro/errors=remount-ro,usrjquota=quota.user,grpjquota=quota.group,jqfmt=vfsv0/g' /etc/fstab
     mount -o remount /
@@ -312,24 +326,22 @@ function configureQuota
 
 
 
-function configureAWstats
-{
+function configureAWstats {
     cd "${curPath}"
     sed -i '/r/ s/^/# /g' "/etc/cron.d/awstats"
 }
 
 
 
-function configureJailkit
-{
+function configureJailkit {
     cd "${curPath}"
     case "${jailkit}" in
         y)  echo "Installing Jailkit"
             apt-get -y install build-essential autoconf automake libtool flex bison debhelper binutils
             cd /tmp
-            wget http://olivier.sessink.nl/jailkit/jailkit-2.17.tar.gz
-            tar xvfz jailkit-2.17.tar.gz
-            cd jailkit-2.17
+            wget http://olivier.sessink.nl/jailkit/jailkit-2.19.tar.gz
+            tar xvfz jailkit-2.19.tar.gz
+            cd jailkit-2.19
             ./debian/rules binary
             for file in /tmp/*.deb
             do
@@ -342,8 +354,7 @@ function configureJailkit
 
 
 
-function configureFail2ban
-{
+function configureFail2ban {
     cd "${curPath}"
     echo '
 [pureftpd]
@@ -372,39 +383,65 @@ failregex = .*pure-ftpd: \(.*@<HOST>\) \[WARNING\] Authentication failed for use
 ignoreregex =' > "/etc/fail2ban/filter.d/pureftpd.conf"
 
     echo '[Definition]
-failregex = .*pure-ftpd: \(.*@<HOST>\) \[WARNING\] Authentication failed for user.*
-ignoreregex =' > "/etc/fail2ban/filter.d/pureftpd.conf"
-
-    echo '[Definition]
 failregex = (?: pop3-login|imap-login): .*(?:Authentication failure|Aborted login \(auth failed|Aborted login \(tried to use disabled|Disconnected \(auth failed|Aborted login \(\d+ authentication attempts).*rip=(?P<host>\S*),.*
 ignoreregex =' > "/etc/fail2ban/filter.d/dovecot-pop3imap.conf"
 
-    echo 'ignoreregex =' >> /etc/fail2ban/filter.d/postfix-sasl.conf
-
+    echo 'ignoreregex =' >> "/etc/fail2ban/filter.d/postfix-sasl.conf"
+    service fail2ban restart
 }
 
 
 
-function installISPConfig
-{
+function configureUFW {
+    cd "${curPath}"
+    case "${ufw}" in
+        y)  echo "Installing UFW"
+            apt-get -y install ufw
+            ;;
+        *)  echo ""
+    esac
+}
+
+
+
+function configureRoundCube {
+    cd "${curPath}"
+    case "${roundcube}" in
+        y)  echo "Installing RoundCube"
+            echo "deb http://ftp.${country,,}.debian.org/debian jessie-backports main" >> "/etc/apt/sources.list"
+            apt-get update
+            apt-get -y install roundcube roundcube-core roundcube-mysql roundcube-plugins
+            updateSettings "/etc/roundcube/config.inc.php" 'default_host' '$config["default_host"] = "localhost";'
+            updateSettings "/etc/roundcube/config.inc.php" 'smtp_server'  '$config["smtp_server"] = "localhost";'
+            updateSettings "/etc/apache2/conf-enabled/roundcube.conf" 'Alias'  'Alias /webmail /var/lib/roundcube'
+            ;;
+        *)  echo ""
+    esac
+}
+
+
+
+function installISPConfig {
     cd "${curPath}"
     if [[ -z "${commonname}" ]]
     then
         commonname="${hostname}.${domain}"
     fi
-    wget "http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz" -O "/tmp/ISPC.tgz"
-    tar -xvzf "/tmp/ISPC.tgz" -C "/tmp/"
-    ./ispcexpect "${mysqlpassword}" "${databasename}" "${country}" "${state}" "${city}" "${organization}" "${unit}" "${commonname}" "${email}" "${port}" "${ssl}" "${country}" "${state}" "${city}" "${organization}" "${unit}" "${email}"
+    mkdir -p "/tmp/ISPC"
+    curl -o "/tmp/ISPC.tgz" -O "https://git.ispconfig.org/ispconfig/ispconfig3/repository/archive.tar.gz?ref=stable-3.1"
+    tar -xvzf "/tmp/ISPC.tgz" -C "/tmp/ISPC"
+    mv "/tmp/ISPC/ispc"* "/tmp/ISPC/ispconfig"
+    ./ispcexpect "${mysqlpassword}" "${databasename}" "${country}" "${state}" "${city}" "${organization}" "${unit}" "${commonname}" "${email}" "${port}" "${ssl}" "${country}" "${state}" "${city}" "${organization}" "${unit}" "${email} ${adminpassword}"
 }
 
 
 
-function installHorde
-{
+function installHorde {
     cd "${curPath}"
     case "${horde}" in
         y)  echo "Installing Horde"
             apt-get -y install php5-sasl php5-intl libssh2-php php5-curl php-http php5-xmlrpc php5-geoip php5-ldap php5-memcache php5-memcached php5-tidy
+            apt-get -y remove php5-xcache
             pear channel-discover pear.horde.org
             pear install horde/horde_role
             ./horderoleexpect "${hordefilesystem}"
@@ -413,13 +450,16 @@ function installHorde
             ./hordewebmailexpect "${hordeuser}" "${hordepassword}" "${hordedatabase}" "${hordefilesystem}" "${hordeadmin}" "${hordemysql}"
             mkdir "${hordefilesystem}/phptmp/"
             chown -R www-data:www-data "${hordefilesystem}"
-            pear install channel://pear.php.net/MDB2_Driver_mysql-1.5.0b4
-            pear install channel://pear.php.net/HTTP_WebDAV_Server-1.0.0RC7
+            pear install channel://pear.php.net/Console_GetoptPlus-1.0.0RC1
+            pear install horde/Horde_ManageSieve
             pear install channel://pear.php.net/XML_Serializer-0.20.2
             pear install channel://pear.php.net/Date_Holidays-0.21.8
-            pear install Net_LDAP
+            pear install channel://pear.php.net/Text_LanguageDetect-0.3.0
             pear install pear/HTTP_Request2
             pear install channel://pear.php.net/Console_Color2-0.1.2
+            pear install channel://pear.php.net/Numbers_Words-0.18.1
+            pear install channel://pear.php.net/Image_Text-0.7.0
+            pear install pear/Console_Getargs
             echo "Alias /Microsoft-Server-ActiveSync ${hordefilesystem}/rpc.php
 Alias /horde ${hordefilesystem}
 Alias /autodiscover/autodiscover.xml ${hordefilesystem}/rpc.php
@@ -428,8 +468,7 @@ Alias /AutoDiscover/AutoDiscover.xml ${hordefilesystem}/rpc.php
 <Directory ${hordefilesystem}>
            Options +FollowSymLinks
            AllowOverride All
-           order allow,deny
-           allow from all
+           Require all granted
            AddType application/x-httpd-php .php
            php_value include_path \".:/usr/share/php\"
            php_value open_basedir \"none\"
@@ -483,14 +522,12 @@ Alias /AutoDiscover/AutoDiscover.xml ${hordefilesystem}/rpc.php
 
 
 
-function applyLogJam
-{
+function applyLogJam {
     cd "${curPath}"
     case "${logjam}" in
         y)  echo "Applying LogJam security measures"
             # Generate new DH cert
             openssl dhparam -out "/etc/ssl/private/dh-${dhkeysize}.pem" ${dhkeysize}
-            updateSettings "/etc/apache2/mods-available/ssl.conf" 'SSLProtocol all' '        SSLProtocol             all -SSLv2 -SSLv3'
             # Secure Apache2
             updateSettings "/etc/apache2/mods-available/ssl.conf" 'SSLCipherSuite' '        SSLCipherSuite          ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA'
             updateSettings "/etc/apache2/mods-available/ssl.conf" 'SSLHonorCipherOrder' '        SSLHonorCipherOrder on'
@@ -521,13 +558,17 @@ configureNetwork
 installPackages
 configureMySQL
 configurePostfix
+configureAmavisdSpamassassinClamav
 configureApache
+configureLetsEncrypt
 configureMailman
 configurePureFTPd
 configureQuota
 configureAWstats
 configureJailkit
 configureFail2ban
+configureUFW
+#configureRoundCube
 installISPConfig
 installHorde
 applyLogJam
