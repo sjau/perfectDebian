@@ -1,84 +1,8 @@
 #!/usr/bin/env bash
 
-### Network Settings
-interface="eth0"
-ip="10.0.0.100"
-netmask="255.255.255.0"
-network="10.0.0.0"
-broadcast="10.0.0.255"
-gateway="10.0.0.1"
-
-
-### Hostname and Domain Name
-hostname="ispc"
-domain="domain.tld"
-
-
-### SSL Settings
-country="CH"                            # Your country, 2-letter abbreviation
-state="State"                           # Your state
-city="Town"                             # Your city
-organization="Company"                  # e.g. Organization, Company name or something
-unit="Unit"                             # e.g. Organizational Unit, Section or something
-commonname=""                           # Leave empty, then your FQDN will be used as sated above with hostname and domain name
-email="user@domain.tld"               # Your email address
-
-
-### MySQL Settings
-useUTF8="y"                             # Set to 'y' run server by default as utf-8
-mysqlpassword="mypassword"
-bind="y"                                # Set to 'y' for mysql to listen on all interfaces and not just localhost
-
-
-### Apache Settings
-webdav="y"                              # Set to 'y' to enable WebDAV
-
-
-### Mail Man
-mailman="y"                             # Set to 'y' to enable Mailman
-mailmanemail="lists@domain.tld"       # Set email of the person running the list; email must be user@domain.com and can't be user@sub.domain.com
-mailmanpassword="mypassword" 
-
-
-### Jailkit
-jailkit="y"                             # Set to 'y' to enable Jailkit
-
-
-### UFW
-ufw="y"                                 # Set to 'y' to install ufw
-
-
-### ISPConfig
-databasename="dbispconfig"              # Set ISPConfig Database Name
-port="8080"                             # Set ISPConfig Port
-adminpassword="admin"                   # Set the ISPConfig Admin Password
-ssl="y"                                 # Set to 'y' to use SSL to access ISPConfig
-
-
-### Horde
-horde="y"                               # Set 'y' to install Horde
-hordedatabase="horde"                   # Set Horde Databasename
-hordeuser="horde"                       # Set MySQL Horde Username
-hordepassword="mypassword"              # Set password for Horde Username
-hordefilesystem="/var/www/horde"        # Set filesystem location for horde
-hordeadmin="admin@domain.tld"           # Set existing mail user with administrator permissions
-hordemysql="mysql"			# Set your perferred mysql driver, either "mysql" for mysql/pdo or "mysqli" for mysqli.
-					# See discussion: http://lists.horde.org/archives/horde/Week-of-Mon-20130121/046301.html
-
-
-### configureRoundCube
-roundcube="y"                           # Set to 'y' to install RoundCube
-
-
-### LogJam
-logjam="y"                              # Set to 'y' to enalbe LogJam security measures - read more here: https://weakdh.org/
-dhkeysize="4096"                        # Set keysize for Diffie-Hellman, at least 2048bit, 4096 will require a long time
-
-
-
-# Detailed installation steps at https://www.howtoforge.com/tutorial/perfect-server-debian-8-jessie-apache-bind-dovecot-ispconfig-3
-
-
+# This is the main script. When first run, it will copy the config template to config.conf
+# You will need then to edit the config.conf and set your values.
+# Once done, you can re-run this script again and it will do the installation.
 
 
 ##############################################################################
@@ -89,7 +13,7 @@ dhkeysize="4096"                        # Set keysize for Diffie-Hellman, at lea
 
 curPath=$( pwd )
 
-function updateSettings {
+updateSettings () {
     File="$1"
     Pattern="$2"
     Replace="$3"
@@ -103,9 +27,132 @@ function updateSettings {
     fi
 }
 
+confCheck () {
+    # Check if file exists
+    if [[ ! -f "config.conf" ]]; then
+        echo '### Network Settings
+interface="enp0s3"                      # Your network interface name
+ip=""                                   # The IP(v4) for the network, e.g. "10.0.0.100"
+netmask="255.255.255.0"                 # The netmask, e.g. "255.255.255.0"
+network=""                              # The network, e.g. "10.0.0.0"
+broadcast=""                            # The broadcast, e.g. "10.0.0.255"
+gateway=""                              # The gateway, e.g. "10.0.0.1"
 
 
-function configureNetwork {
+### Hostname and Domain Name
+hostname=""                             # Your hostname, e.g. "ispc"
+domain=""                               # Your domain name, e.g. "mydomain.tld"
+
+
+### SSL Settings
+country=""                              # Your country, 2-letter abbreviation, e.g. "CH"
+state=""                                # Your state, e.g. "SG"
+city=""                                 # Your city
+organization=""                         # e.g. Organization, Company name or something
+unit=""                                 # e.g. Organizational Unit, Section or something
+commonname=""                           # Leave empty, then your FQDN will be used as sated above with hostname and domain name
+email=""                                # Your email address
+
+
+### MariaDB Settings
+mariadbpassword=""                      # Your password for MariaDB
+bind="y"                                # Set to "y" for MariaDB to listen on all interfaces and not just localhost
+
+
+### Apache Settings
+webdav="y"                              # Set to "y" to enable WebDAV
+
+
+### Mailman
+mailman="y"                             # Set to "y" to enable Mailman
+mailmanemail=""                         # Set email of the person running the list; email must be user@domain.com and cannot be user@sub.domain.com
+mailmanpassword=""                      # Set the mailman password
+
+
+### Jailkit
+jailkit="y"                             # Set to "y" to enable Jailkit
+
+
+### UFW
+ufw="y"                                 # Set to "y" to install ufw
+
+
+### ISPConfig
+databasename="dbispconfig"              # Set ISPConfig Database Name
+port="8080"                             # Set ISPConfig Port
+adminpassword=""                        # Set the ISPConfig Admin Password
+ssl="y"                                 # Set to "y" to use SSL to access ISPConfig
+
+
+### Horde
+horde="y"                               # Set "y" to install Horde
+hordedatabase="horde"                   # Set Horde Databasename
+hordeuser="horde"                       # Set MariaDB Horde Username
+hordepassword=""                        # Set password for Horde Username
+hordefilesystem="/var/www/horde"        # Set filesystem location for horde
+hordeadmin=""                           # Set existing mail user with administrator permissions
+hordemariadb="mysql"                    # Set your perferred MariaDB driver, 
+                                        # either "mysql" for mysql/pdo or "mysqli" for mysqli.
+                                        # See discussion: http://lists.horde.org/archives/horde/Week-of-Mon-20130121/046301.html
+
+
+### configureRoundCube
+roundcube="y"                           # Set to "y" to install RoundCube
+
+
+### LogJam
+logjam="y"                              # Set to "y" to enalbe LogJam security measures - read more here: https://weakdh.org/
+dhkeysize="4096"                        # Set keysize for Diffie-Hellman, at least 2048bit, 4096 will require a long time
+
+### Config Version
+confversion="2017062901"                # Do not alter manually!!!
+
+# Detailed installation steps at https://www.howtoforge.com/tutorial/perfect-server-debian-9-stretch-apache-bind-dovecot-ispconfig-3-1/
+' > "config.conf"
+        echo "A default configuration file was generated as 'config.conf'"
+        echo "You will need then to edit the config.conf and set your values, especially passwords."
+        echo "Once done, you can re-run this script again and it will do the installation."
+        exit
+    else
+        source "./config.conf"
+    fi
+    # Check if config file version is up-to-date
+    if [[ "${confversion}" = "2017062901" ]]; then
+        echo "Config is current. Proceeding with installation."
+    else
+        echo "Your config is out of date. Please remove it and re-run this script."
+        exit
+    fi
+    # Check if necessary variables are set
+    echo "Checking if all necessary config options were set."
+    if [[ -z "${ip}" ]]; then echo "The variable 'ip' is not set."; missingVar=1; fi
+    if [[ -z "${network}" ]]; then echo "The variable 'network' is not set."; missingVar=1; fi
+    if [[ -z "${broadcast}" ]]; then echo "The variable 'broadcast' is not set."; missingVar=1; fi
+    if [[ -z "${gateway}" ]]; then echo "The variable 'gateway' is not set."; missingVar=1; fi
+    if [[ -z "${hostname}" ]]; then echo "The variable 'hostname' is not set."; missingVar=1; fi
+    if [[ -z "${domain}" ]]; then echo "The variable 'domain' is not set."; missingVar=1; fi
+    if [[ -z "${country}" ]]; then echo "The variable 'country' is not set."; missingVar=1; fi
+    if [[ -z "${state}" ]]; then echo "The variable 'state' is not set."; missingVar=1; fi
+    if [[ -z "${city}" ]]; then echo "The variable 'city' is not set."; missingVar=1; fi
+    if [[ -z "${organization}" ]]; then echo "The variable 'organization' is not set."; missingVar=1; fi
+    if [[ -z "${unit}" ]]; then echo "The variable 'unit' is not set."; missingVar=1; fi
+    if [[ -z "${email}" ]]; then echo "The variable 'email' is not set."; missingVar=1; fi
+    if [[ -z "${mariadbpassword}" ]]; then echo "The variable 'mariadbpassword' is not set."; missingVar=1; fi
+    if [[ "${mailman}" = "y" && -z "${mailmanemail}" ]]; then echo "The variable 'mailmanemail' is not set."; missingVar=1; fi
+    if [[ "${mailman}" = "y" && -z "${mailmanpassword}" ]]; then echo "The variable 'mailmanpassword' is not set."; missingVar=1; fi
+    if [[ -z "${adminpassword}" ]]; then echo "The variable 'adminpassword' is not set."; missingVar=1; fi
+    if [[ "${horde}" = "y" && -z "${hordepassword}" ]]; then echo "The variable 'hordepassword' is not set."; missingVar=1; fi
+    if [[ "${horde}" = "y" && -z "${hordeadmin}" ]]; then echo "The variable 'hordeadmin' is not set."; missingVar=1; fi
+    # Test if there was a missing var
+    if [[ "${missingVar}" -eq 1 ]]; then
+        echo "You need to fix those missing settings. Please enter according info and re-run this script."
+        exit
+    else
+        echo "All necessary config options set. Proceeding with installation."
+    fi
+}
+
+configureNetwork () {
     cd "${curPath}"
     # Make backup of curent interfaces
     cp "/etc/network/interfaces" "/etc/network/interfaces.orig"
@@ -138,17 +185,15 @@ ff02::2 ip6-allrouters" > "/etc/hosts"
     sysctl kernel.hostname=${hostname}
 }
 
-
-
-function preseeding {
+preseeding () {
     cd "${curPath}"
     echo "
 postfix postfix/mailname string ${hostname}.${domain}
 postfix postfix/main_mailer_type select Internet Site
 postfix postfix/destinations string ${hostname}.${domain}, localhost.${domain}, , localhost
-mariadb-server-10.0 mysql-server/root_password password ${mysqlpassword}
+mariadb-server-10.0 mysql-server/root_password password ${mariadbpassword}
 mariadb-server-10.0 mysql-server/root_password seen true
-mariadb-server-10.0 mysql-server/root_password_again password ${mysqlpassword}
+mariadb-server-10.0 mysql-server/root_password_again password ${mariadbpassword}
 mariadb-server-10.0 mysql-server/root_password_again seen true
 phpmyadmin phpmyadmin/internal/reconfiguring boolean false
 phpmyadmin phpmyadmin/missing-db-package-error select abort
@@ -173,59 +218,61 @@ roundcube-core roundcube/database-type select mysql
    " > "packages.preseed"
 }
 
-
-function installPackages {
+installPackages () {
     cd "${curPath}"
-    # Get key for HHVM
-    apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0x5a16e7281be7a449
-    echo "deb http://ftp.${country,,}.debian.org/debian/ jessie main contrib non-free
-deb-src http://ftp.${country,,}.debian.org/debian/ jessie main contrib non-free
+    echo "deb http://ftp.${country,,}.debian.org/debian/ stretch main contrib non-free
+deb-src http://ftp.${country,,}.debian.org/debian/ stretch main contrib non-free
 
-deb http://security.debian.org/ jessie/updates main contrib non-free
-deb-src http://security.debian.org/ jessie/updates main contrib non-free
+deb http://security.debian.org/ stretch/updates main contrib non-free
+deb-src http://security.debian.org/ stretch/updates main contrib non-free
 
-# jessie-updates, previously known as 'volatile'
-deb http://ftp.${country,,}.debian.org/debian/ jessie-updates main contrib non-free
-deb-src http://ftp.${country,,}.debian.org/debian/ jessie-updates main contrib non-free
-
-# HHVM
-deb http://dl.hhvm.com/debian jessie main" > "/etc/apt/sources.list"
+# stretch-updates, previously known as 'volatile'
+deb http://ftp.${country,,}.debian.org/debian/ stretch-updates main contrib non-free
+deb-src http://ftp.${country,,}.debian.org/debian/ stretch-updates main contrib non-free" > "/etc/apt/sources.list"
     apt-get update
     apt-get -y upgrade
     apt-get -y install debconf-utils
     echo -e "debconf debconf/frontend select Noninteractive\ndebconf debconf/priority select critical" | debconf-set-selections
     preseeding
     cat packages.preseed | debconf-set-selections
-    apt-get -y install expect curl ssh openssh-server ntp ntpdate postfix postfix-mysql postfix-doc mariadb-client mariadb-server openssl getmail4 rkhunter binutils dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-sieve dovecot-lmtpd sudo amavisd-new spamassassin clamav clamav-daemon zoo unzip bzip2 arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl zip libnet-dns-perl postgrey apache2 apache2.2-common apache2-doc apache2-mpm-prefork apache2-utils libexpat1 ssl-cert libapache2-mod-php5 php5 php5-common php5-gd php5-mysql php5-imap phpmyadmin php5-cli php5-cgi libapache2-mod-fcgid apache2-suexec php-pear php-auth php5-mcrypt mcrypt php5-imagick imagemagick libruby libapache2-mod-python php5-curl php5-intl php5-memcache php5-memcached php5-pspell php5-recode php5-sqlite php5-tidy php5-xmlrpc php5-xsl memcached libapache2-mod-passenger hhvm git libapache2-mod-fastcgi php5-fpm php5-xcache pure-ftpd-common pure-ftpd-mysql quota quotatool bind9 dnsutils haveged vlogger webalizer awstats geoip-database libclass-dbi-mysql-perl fail2ban
+    apt-get -y install expect curl ssh openssh-server nano vim-nox ntp postfix postfix-mysql postfix-doc mariadb-client mariadb-server openssl getmail4 rkhunter binutils dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-sieve dovecot-lmtpd sudo amavisd-new spamassassin clamav clamav-daemon zoo unzip bzip2 arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl zip libnet-dns-perl postgrey apache2 apache2-doc apache2-utils libapache2-mod-php php7.0 php7.0-common php7.0-gd php7.0-mysql php7.0-imap phpmyadmin php7.0-cli php7.0-cgi libapache2-mod-fcgid apache2-suexec-pristine php-pear php7.0-mcrypt mcrypt imagemagick libruby libapache2-mod-python php7.0-curl php7.0-intl php7.0-pspell php7.0-recode php7.0-sqlite3 php7.0-tidy php7.0-xmlrpc php7.0-xsl memcached php-memcache php-imagick php-gettext php7.0-zip php7.0-mbstring libapache2-mod-passenger certbot php7.0-fpm php7.0-opcache php-apcu pure-ftpd-common pure-ftpd-mysql quota quotatool bind9 dnsutils haveged webalizer awstats geoip-database libclass-dbi-mysql-perl libtimedate-perl fail2ban
 }
 
-
-
-function configureMySQL {
+configureMariaDB () {
     cd "${curPath}"
-    ./mysql_secure_installation_expect "${mysqlpassword}"
-    case "${useUTF8}" in
-        y)  echo "Updating Mysql to UTF8"
-            updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'default-character-set' 'default-character-set = utf8'
-            updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'character-set-server' 'character-set-server  = utf8'
-            updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'collation-server' 'collation-server       = utf8_general_ci'
-            updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'character_set_server' 'character_set_server   = utf8'
-            updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'collation_server' 'collation_server       = utf8_general_ci'
-                ;;
-        *)  echo ""
-    esac
+
+    export HISTIGNORE="expect*"
+    expect -c "
+        spawn mysql_secure_installation
+        while {1} {
+            expect {
+                -re {Enter current password .*}          {send \r}
+                -re {Set root .*}                        {send y\r}
+                -re {New .*}                             {send ${mariadbpassword}\r}
+                -re {Re-enter new .*}                    {send ${mariadbpassword}\r}
+                -re {Remove anonymous .*\[.*\]?}         {send y\r}
+                -re {Disallow root login .*\[.*\]?}      {send y\r}
+                -re {Remove test database .*\[.*\]?}     {send y\r}
+                -re {Reload privilege tables .*\[.*\]?}  {send y\r}
+                eof                                      {break}
+            }
+        }"
+    export HISTIGNORE=""
+
     case "${bind}" in
-        y)  echo "Updating Mysql to allow all incoming connections"
-                updateSettings "/etc/mysql/my.cnf" 'bind-address' '#bind-address       127.0.0.1'
+        y)  echo "Updating MariaDB to allow all incoming connections"
+                updateSettings "/etc/mysql/mariadb.conf.d/50-server.cnf" 'bind-address' "#bind-address       127.0.0.1\nsql-mode='NO_ENGINE_SUBSTITUTION'"
                 ;;
-        *)  echo ""
+        *)  updateSettings "/etc/mysql/mariadb.conf.d/50-server.cnf" 'bind-address' "bind-address       127.0.0.1\nsql-mode='NO_ENGINE_SUBSTITUTION'"
+                ;;
     esac
+
+    echo "update mysql.user set plugin = 'mysql_native_password' where user='root';" | mysql -u root
+    updateSettings "/etc/mysql/debian.cnf" 'password' "password = ${mariadbpassword}"
     service mysql restart
 }
 
-
-
-function configurePostfix {
+configurePostfix () {
     cd "${curPath}"
     updateSettings "/etc/postfix/master.cf" 'submission inet n' 'submission inet n       -       -       -       -       smtpd'
     updateSettings "/etc/postfix/master.cf" 'syslog_name=postfix\/submission' '  -o syslog_name=postfix\/submission'
@@ -236,45 +283,55 @@ function configurePostfix {
     updateSettings "/etc/postfix/master.cf" 'smtpd_tls_wrappermode' '  -o smtpd_tls_wrappermode=yes'
 }
 
-
-
-function configureAmavisdSpamassassinClamav {
+configureAmavisdSpamassassinClamav () {
     cd "${curPath}"
     updateSettings "/etc/clamav/clamd.conf" 'AllowSupplementaryGroups' 'AllowSupplementaryGroups true'
-    service spamassassin stop
+    systemctl stop spamassassin
     systemctl disable spamassassin
 }
 
-
-
-function configureApache {
+configureApache () {
     cd "${curPath}"
-    a2enmod suexec rewrite ssl actions include cgi headers actions fastcgi alias
+    a2enmod suexec rewrite ssl actions include cgi headers
     case "${webdav}" in
         y)  echo "Enabling WebDAV on Apache2"
             a2enmod dav_fs dav auth_digest
                 ;;
         *)  echo ""
     esac
+    echo "<IfModule mod_headers.c>
+    RequestHeader unset Proxy early
+</IfModule>" > "/etc/apache2/conf-available/httpoxy.conf"
+    a2enconf httpoxy
 }
 
-
-
-function configureLetsEncrypt {
-    cd /opt
-    git clone https://github.com/letsencrypt/letsencrypt
-    cd letsencrypt/
-    ./letsencrypt-auto --help
+configureLetsEncrypt () {
+    certbot --agree-tos
+    systemctl restart apache2
 }
 
+configurePHPFPM () {
+    cd "${curPath}"
+    a2enmod actions proxy_fcgi alias
+}
 
-
-function configureMailman {
+configureMailman () {
     cd "${curPath}"
     case "${mailman}" in
         y)  echo "Installing Mailman"
             apt-get -y install mailman
-            ./mailmanexpect "${mailmanemail}" "${mailmanpassword}"
+            export HISTIGNORE="expect*"
+            expect -c "
+                spawn newlist mailman
+                while {1} {
+                    expect {
+                        -re {Enter the email .*:}          {send ${mailmanemail}\r}
+                        -re {Initial mailman .*:}          {send ${mailmanpassword}\r}
+                        -re {Hit enter to notify .*}       {send \r}
+                        eof                                {break}
+                    }
+                }";
+            export HISTIGNORE=""
             echo '
 ## mailman mailing list
 mailman:              "|/var/lib/mailman/mail/mailman post mailman"
@@ -289,34 +346,30 @@ mailman-subscribe:    "|/var/lib/mailman/mail/mailman subscribe mailman"
 mailman-unsubscribe:  "|/var/lib/mailman/mail/mailman unsubscribe mailman"' >> "/etc/aliases"
             newaliases
             ln -s "/etc/mailman/apache.conf" "/etc/apache2/conf-enabled/mailman.conf"
-            service postfix start
-            service apache2 restart
-            service mailman start
+            systemctl restart postfix
+            systemctl restart apache2
+            systemctl restart mailman
             ;;
         *)  echo ""
     esac
 }
 
-
-
-function configurePureFTPd {
+configurePureFTPd () {
     cd "${curPath}"
     updateSettings "/etc/default/pure-ftpd-common" 'STANDALONE_OR_INETD=' "STANDALONE_OR_INETD=standalone"
     updateSettings "/etc/default/pure-ftpd-common" 'VIRTUALCHROOT=' "VIRTUALCHROOT=true"
-    echo 1 > /etc/pure-ftpd/conf/TLS
-    mkdir -p /etc/ssl/private/
+    echo 1 > "/etc/pure-ftpd/conf/TLS"
+    mkdir -p "/etc/ssl/private/"
     if [[ -z "${commonname}" ]]; then
         commonname="${hostname}.${domain}"
     fi
     mkdir -p '/etc/ssl/private/'
     openssl req -x509 -nodes -days 7300 -newkey rsa:4096 -subj "/C=${country}/ST=${state}/L=${city}/O=${organization}/OU=${unit}/CN=${commonname}/emailAddress=${email}" -keyout "/etc/ssl/private/pure-ftpd.pem" -out "/etc/ssl/private/pure-ftpd.pem"
-    chmod 600 /etc/ssl/private/pure-ftpd.pem
-    service pure-ftpd-mysql restart
+    chmod 600 "/etc/ssl/private/pure-ftpd.pem"
+    systemctl restart pure-ftpd-mysql
 }
 
-
-
-function configureQuota {
+configureQuota () {
     cd "${curPath}"
     sed -i -e 's/errors=remount-ro/errors=remount-ro,usrjquota=quota.user,grpjquota=quota.group,jqfmt=vfsv0/g' /etc/fstab
     mount -o remount /
@@ -324,16 +377,12 @@ function configureQuota {
     quotaon -avug
 }
 
-
-
-function configureAWstats {
+configureAWstats () {
     cd "${curPath}"
     sed -i '/r/ s/^/# /g' "/etc/cron.d/awstats"
 }
 
-
-
-function configureJailkit {
+configureJailkit () {
     cd "${curPath}"
     case "${jailkit}" in
         y)  echo "Installing Jailkit"
@@ -342,6 +391,7 @@ function configureJailkit {
             wget http://olivier.sessink.nl/jailkit/jailkit-2.19.tar.gz
             tar xvfz jailkit-2.19.tar.gz
             cd jailkit-2.19
+            echo 5 > debian/compat
             ./debian/rules binary
             for file in /tmp/*.deb
             do
@@ -352,47 +402,32 @@ function configureJailkit {
     esac
 }
 
-
-
-function configureFail2ban {
+configureFail2ban () {
     cd "${curPath}"
-    echo '
-[pureftpd]
-enabled  = true
-port     = ftp
-filter   = pureftpd
-logpath  = /var/log/syslog
+    echo '[pure-ftpd]
+enabled = true
+port = ftp
+filter = pure-ftpd
+logpath = /var/log/syslog
 maxretry = 3
 
-[dovecot-pop3imap]
+[dovecot]
 enabled = true
-filter = dovecot-pop3imap
-action = iptables-multiport[name=dovecot-pop3imap, port="pop3,pop3s,imap,imaps", protocol=tcp]
+filter = dovecot
 logpath = /var/log/mail.log
 maxretry = 5
 
 [postfix-sasl]
-enabled  = true
-port     = smtp
-filter   = postfix-sasl
-logpath  = /var/log/mail.log
+enabled = true
+port = smtp
+filter = postfix-sasl
+logpath = /var/log/mail.log
 maxretry = 3' >> "/etc/fail2ban/jail.local"
 
-    echo '[Definition]
-failregex = .*pure-ftpd: \(.*@<HOST>\) \[WARNING\] Authentication failed for user.*
-ignoreregex =' > "/etc/fail2ban/filter.d/pureftpd.conf"
-
-    echo '[Definition]
-failregex = (?: pop3-login|imap-login): .*(?:Authentication failure|Aborted login \(auth failed|Aborted login \(tried to use disabled|Disconnected \(auth failed|Aborted login \(\d+ authentication attempts).*rip=(?P<host>\S*),.*
-ignoreregex =' > "/etc/fail2ban/filter.d/dovecot-pop3imap.conf"
-
-    echo 'ignoreregex =' >> "/etc/fail2ban/filter.d/postfix-sasl.conf"
-    service fail2ban restart
+    systemctl restart fail2ban
 }
 
-
-
-function configureUFW {
+configureUFW () {
     cd "${curPath}"
     case "${ufw}" in
         y)  echo "Installing UFW"
@@ -402,137 +437,152 @@ function configureUFW {
     esac
 }
 
-
-
-function configureRoundCube {
+configureRoundCube () {
     cd "${curPath}"
     case "${roundcube}" in
         y)  echo "Installing RoundCube"
-            echo "deb http://ftp.${country,,}.debian.org/debian jessie-backports main" >> "/etc/apt/sources.list"
-            apt-get update
             apt-get -y install roundcube roundcube-core roundcube-mysql roundcube-plugins
+
+            export HISTIGNORE="expect*"
+            expect -c "
+                spawn apt-get -y install roundcube roundcube-core roundcube-mysql roundcube-plugins
+                while {1} {
+                    expect {
+                        -re {Configure database for .*:}        {send yes\r}
+                        -re {MySQL application password .*:}    {send \r}
+                        -re {Password for the database .*}      {send ${mariadbpassword}\r}
+                        eof                                     {break}
+                    }
+                }";
+            export HISTIGNORE=""
             updateSettings "/etc/roundcube/config.inc.php" 'default_host' '$config["default_host"] = "localhost";'
             updateSettings "/etc/roundcube/config.inc.php" 'smtp_server'  '$config["smtp_server"] = "localhost";'
-            updateSettings "/etc/apache2/conf-enabled/roundcube.conf" 'Alias'  'Alias /webmail /var/lib/roundcube'
+            updateSettings "/etc/apache2/conf-available/roundcube.conf" 'Alias'  'Alias \/webmail \/var\/lib\/roundcube'
+            systemctl restart apache2
             ;;
         *)  echo ""
     esac
 }
 
-
-
-function installISPConfig {
+installISPConfig () {
     cd "${curPath}"
     if [[ -z "${commonname}" ]]
     then
         commonname="${hostname}.${domain}"
     fi
     mkdir -p "/tmp/ISPC"
-    curl -o "/tmp/ISPC.tgz" -O "https://git.ispconfig.org/ispconfig/ispconfig3/repository/archive.tar.gz?ref=stable-3.1"
+    curl -o "/tmp/ISPC.tgz" -O "https://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz"
     tar -xvzf "/tmp/ISPC.tgz" -C "/tmp/ISPC"
     mv "/tmp/ISPC/ispc"* "/tmp/ISPC/ispconfig"
-    ./ispcexpect "${mysqlpassword}" "${databasename}" "${country}" "${state}" "${city}" "${organization}" "${unit}" "${commonname}" "${email}" "${port}" "${ssl}" "${country}" "${state}" "${city}" "${organization}" "${unit}" "${email} ${adminpassword}"
+
+            export HISTIGNORE="expect*"
+            expect -c "
+                spawn php -q /tmp/ISPC/ispconfig/install/install.php
+                while {1} {
+                    expect {
+                        -re {Select language .*\[.*\]:}          {send \r}
+                        -re {Installation mode .*\[.*\]:}        {send \r}
+                        -re {Full qualified hostname .*\[.*\]:}  {send \r}
+                        -re {MySQL server hostname .*\[.*\]:}    {send \r}
+                        -re {MySQL server port .*\[.*\]:}        {send \r}
+                        -re {MySQL root username .*\[.*\]:}      {send \r}
+                        -re {MySQL root password .*\[.*\]:}      {send $mariadbpassword\r}
+                        -re {MySQL database .*\[.*\]:}           {send $databasename\r}
+                        -re {MySQL charset .*\[.*\]:}            {send \r}
+                        -re {Country Name .*\[.*\]:}             {send $country\r}
+                        -re {State or Province .*\[.*\]:}        {send $state\r}
+                        -re {Locality Name .*\[.*\]:}            {send $city\r}
+                        -re {Organization Name .*\[.*\]:}        {send $organization\r}
+                        -re {Organizational Unit .*\[.*\]:}      {send $unit\r}
+                        -re {Common Name .*\[.*\]:}              {send $commonname\r}
+                        -re {Email Address .*\[.*\]:}            {send $email\r}
+                        -re {ISPConfig Port .*\[.*\]:}           {send $port\r}
+                        -re {Admin password .*\[.*\]:}           {send $adminpassword\r}
+                        -re {Re-enter admin .*\[.*\]:}           {send $adminpassword\r}
+                        -re {Do you want a secure .*\[.*\]:}     {send $ssl\r}
+                        -re {A challenge password .*\[.*\]:}     {send \r}
+                        -re {An optional company .*\[.*\]:}      {send \r}
+                        eof                                      {break}
+                    }
+                }";
+            export HISTIGNORE=""
 }
 
-
-
-function installHorde {
+installHorde () {
     cd "${curPath}"
     case "${horde}" in
         y)  echo "Installing Horde"
-            apt-get -y install php5-sasl php5-intl libssh2-php php5-curl php-http php5-xmlrpc php5-geoip php5-ldap php5-memcache php5-memcached php5-tidy
-            apt-get -y remove php5-xcache
-            pear channel-discover pear.horde.org
-            pear install horde/horde_role
-            ./horderoleexpect "${hordefilesystem}"
-            pear install -a -B horde/webmail
-            mysql -u root --password=${mysqlpassword} --batch --silent -e "CREATE DATABASE ${hordedatabase}; GRANT ALL ON ${hordedatabase}.* TO ${hordeuser}@localhost IDENTIFIED BY '${hordepassword}'; FLUSH PRIVILEGES;";
-            ./hordewebmailexpect "${hordeuser}" "${hordepassword}" "${hordedatabase}" "${hordefilesystem}" "${hordeadmin}" "${hordemysql}"
-            mkdir "${hordefilesystem}/phptmp/"
-            chown -R www-data:www-data "${hordefilesystem}"
-            pear install channel://pear.php.net/Console_GetoptPlus-1.0.0RC1
-            pear install horde/Horde_ManageSieve
-            pear install channel://pear.php.net/XML_Serializer-0.20.2
-            pear install channel://pear.php.net/Date_Holidays-0.21.8
-            pear install channel://pear.php.net/Text_LanguageDetect-0.3.0
-            pear install pear/HTTP_Request2
-            pear install channel://pear.php.net/Console_Color2-0.1.2
-            pear install channel://pear.php.net/Numbers_Words-0.18.1
-            pear install channel://pear.php.net/Image_Text-0.7.0
-            pear install pear/Console_Getargs
-            echo "Alias /Microsoft-Server-ActiveSync ${hordefilesystem}/rpc.php
-Alias /horde ${hordefilesystem}
-Alias /autodiscover/autodiscover.xml ${hordefilesystem}/rpc.php
-Alias /Autodiscover/Autodiscover.xml ${hordefilesystem}/rpc.php
-Alias /AutoDiscover/AutoDiscover.xml ${hordefilesystem}/rpc.php
-<Directory ${hordefilesystem}>
-           Options +FollowSymLinks
-           AllowOverride All
-           Require all granted
-           AddType application/x-httpd-php .php
-           php_value include_path \".:/usr/share/php\"
-           php_value open_basedir \"none\"
-           php_value upload_tmp_dir \"${hordefilesystem}/phptmp/\"
-</Directory>" > /etc/apache2/conf-available/horde.conf
-            a2enconf horde
-            updateSettings "/var/www/horde/.htaccess" 'RewriteEngine On' "    RewriteEngine On\n    RewriteBase \/horde"
-            pear install -a -B horde/passwd
-            chown -R www-data:www-data "${hordefilesystem}/passwd"
-            cp -a "${hordefilesystem}/passwd/config/backends.php" "${hordefilesystem}/passwd/config/backends.local.php"
-            echo "\$backends['sql'] = array (
-  'disabled' => false,
-  'name' => 'SQL Server',
-  'preferred' => '',
-  'policy' => array(
-    'minLength' => 7,
-    'maxLength' => 64,
-    'maxSpace' => 0,
-    'minNumeric' => 1,
-  ),
-  'driver' => 'Sql',
-  'params' => array(
-    'phptype' => 'mysql',
-    'hostspec' => 'localhost',
-    'username' => 'root',
-    'password' => '${mysqlpassword}',
-    'encryption' => 'crypt-md5',
-    'database' => '${databasename}',
-    'table' => 'mail_user',
-    'user_col' => 'email',
-    'pass_col' => 'password',
-    'show_encryption' => false
-    // The following two settings allow you to specify custom queries for
-    // lookup and modify functions if special functions need to be
-    // performed. In places where a username or a password needs to be
-    // used, refer to this placeholder reference:
-    // %d -> gets substituted with the domain
-    // %u -> gets substituted with the user
-    // %U -> gets substituted with the user without a domain part
-    // %p -> gets substituted with the plaintext password
-    // %e -> gets substituted with the encrypted password
-    //
-    // 'query_lookup' => 'SELECT user_pass FROM horde_users WHERE user_uid = %u',
-   // 'query_modify' => 'UPDATE horde_users SET user_pass = %e WHERE user_uid = %u',
-  ),
-);" > "${hordefilesystem}/passwd/config/backends.local.php"
+            apt-get -y install php-horde-webmail php-horde-passwd
+            mysql -u root --password=${mariadbpassword} --batch --silent -e "CREATE DATABASE ${hordedatabase}; GRANT ALL ON ${hordedatabase}.* TO ${hordeuser}@localhost IDENTIFIED BY '${hordepassword}'; FLUSH PRIVILEGES;";
+            export HISTIGNORE="expect*"
+            expect -c "
+                spawn webmail-install
+                    while {1} {
+                        expect {
+                            -re {What database backend .*}          {send $hordemariadb\r}
+                            -re {Username to connect .*}            {send $hordeuser\r}
+                            -re {Password to connect .*}            {send $hordepassword\r}
+                            -re {How should we connect .*}          {send unix\r}
+                            -re {Location of UNIX socket .*}        {send \r}
+                            -re {Database name .*}                  {send $hordedatabase\r}
+                            -re {Internally used .*}                {send \r}
+                            -re {Use SSL to connect .*}             {send 0\r}
+                            -re {Certification Authority .*}        {send \r}
+                            -re {Split reads to .*}                 {send false\r}
+                            -re {Specify an .*}                     {send $hordeadmin\r}
+                            eof                                     {break}
+                        }
+                    }";
+            export HISTIGNORE=""
+            cp -a '/etc/horde/passwd/backends.php' '/etc/horde/passwd/backends.local.php'
+            echo "<?php
+\$backends['sql'] = array(
+    'disabled' => false,
+    'name' => 'SQL Server',
+    'driver' => 'Sql',
+    'policy' => array(
+        'minLength' => 7,
+        'maxLength' => 64,
+        'maxSpace' => 0,
+        'minNumeric' => 1,
+    ),
+    'params' => array(
+        'phptype' => 'mysql',
+        'hostspec' => 'localhost',
+        'username' => 'root',
+        'password' => '${mariadbpassword}',
+        'encryption' => 'crypt-md5',
+        'database' => '${databasename}',
+        'table' => 'mail_user',
+        'user_col' => 'email',
+        'pass_col' => 'password',
+        'show_encryption' => false
+    ),
+);" > '/etc/horde/passwd/backends.local.php'
+            echo '<?php
+/* CONFIG START. DO NOT CHANGE ANYTHING IN OR AFTER THIS LINE. */
+// $Id: afef93e939103554c1ec47b6cb4ae47e8ed5145b $
+$conf["backend"]["backend_list"] = "shown";
+$conf["user"]["change"] = true;
+$conf["user"]["refused"] = array("root", "bin", "daemon", "adm", "lp", "shutdown", "halt", "uucp", "ftp", "anonymous", "nobody", "httpd", "operator", "guest", "diginext", "bind", "cyrus", "courier", "games", "kmem", "mailnull", "man", "mysql", "news", "postfix", "sshd", "tty", "www");
+$conf["password"]["strengthtests"] = true;
+/* CONFIG END. DO NOT CHANGE ANYTHING IN OR BEFORE THIS LINE. */' > '/etc/horde/passwd/conf.php'
+            chown www-data '/etc/horde/passwd/backends.local.php'
+            chown www-data '/etc/horde/passwd/conf.php'
             ;;
         *)  echo ""
     esac
 }
 
-
-
-function applyLogJam {
+applyLogJam () {
     cd "${curPath}"
     case "${logjam}" in
         y)  echo "Applying LogJam security measures"
             # Generate new DH cert
             openssl dhparam -out "/etc/ssl/private/dh-${dhkeysize}.pem" ${dhkeysize}
             # Secure Apache2
-            updateSettings "/etc/apache2/mods-available/ssl.conf" 'SSLCipherSuite' '        SSLCipherSuite          ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA'
             updateSettings "/etc/apache2/mods-available/ssl.conf" 'SSLHonorCipherOrder' '        SSLHonorCipherOrder on'
-                    # The SSLOpenSSLConfCmd DHParameters command isn't working on Jessie due to OpenSSL being v1.0.1 instead of v1.0.2
-                    #            updateSettings "/etc/apache2/mods-available/ssl.conf" 'SSLStrictSNIVHostCheck On' "        #SSLStrictSNIVHostCheck On\n        SSLOpenSSLConfCmd DHParameters \"/etc/ssl/private/dh-${dhkeysize}.pem\""
+            updateSettings "/etc/apache2/mods-available/ssl.conf" 'SSLStrictSNIVHostCheck On' "        #SSLStrictSNIVHostCheck On\n        SSLOpenSSLConfCmd DHParameters \"\/etc\/ssl\/private\/dh-${dhkeysize}.pem\""
             # Secure Postfix
             postconf -e "smtpd_tls_mandatory_exclude_ciphers = aNULL, eNULL, EXPORT, DES, RC4, MD5, PSK, aECDH, EDH-DSS-DES-CBC3-SHA, EDH-RSA-DES-CDC3-SHA, KRB5-DE5, CBC3-SHA"
             postconf -e "smtpd_tls_dh1024_param_file = /etc/ssl/private/dh-${dhkeysize}.pem"
@@ -542,11 +592,17 @@ function applyLogJam {
             echo "ssl_dh_parameters_length = ${dhkeysize}" >> '/etc/dovecot/dovecot.conf'
             # PureFTPD -> The Wrapper Script is already fine, only the TLSCipherSuite needs adjustement
             echo 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA' > '/etc/pure-ftpd/conf/TLSCipherSuite'
+            systemctl restart apache2
+            systemctl restart postfix
+            systemctl restart dovecot
+            systemctl restart pure-ftpd-mysql
             ;;
         *)  echo ""
     esac
 }
 
+# Check for valid config file
+confCheck
 
 
 # Set default shell to bash
@@ -556,11 +612,12 @@ dpkg-reconfigure -f noninteractive dash > /dev/null 2>&1
 # Run the individual functions
 configureNetwork
 installPackages
-configureMySQL
+configureMariaDB
 configurePostfix
 configureAmavisdSpamassassinClamav
 configureApache
 configureLetsEncrypt
+configurePHPFPM
 configureMailman
 configurePureFTPd
 configureQuota
@@ -568,7 +625,7 @@ configureAWstats
 configureJailkit
 configureFail2ban
 configureUFW
-#configureRoundCube
+configureRoundCube
 installISPConfig
 installHorde
 applyLogJam
@@ -587,4 +644,5 @@ echo "Installation of Perfect Server, ISPConfig and - if selected - Horde Webmai
 echo "Please reboot server and connect to new IP if it was altered."
 echo ""
 echo "You can now access IPSConfig at http${s}://${ip}:${port} or http${s}://${hostname}.${domain}:${port}"
-echo "and Horde can be access on any domain (or IP) as /horde e.g. http://${hostname}.${domain}/horde"
+echo "and Horde (if installed) can be access on any domain (or IP) as /horde e.g. http://${hostname}.${domain}/horde"
+echo "and Roundcube (if installed) can be access on any domain (or IP) as /webmail, e.g. http://${hostname}.${domain}/webmail"
